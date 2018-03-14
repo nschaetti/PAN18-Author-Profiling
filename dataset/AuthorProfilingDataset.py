@@ -146,14 +146,13 @@ class AuthorProfilingDataset(Dataset):
                 im = Image.new('RGB', (10, 10))
             # end try
 
-            print(im)
             print(im.width)
             print(im.height)
-            exit()
 
             # Add image
             images.append(im)
         # end for
+        exit()
 
         # return tweets, images, self.labels[current_idxs]
         return tweets, self.labels[current_idxs]
