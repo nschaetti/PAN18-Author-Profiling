@@ -20,9 +20,10 @@ class AuthorProfilingDataset(Dataset):
     """
 
     # Constructor
-    def __init__(self, root='./data', download=True, lang='en', text_transform=None, image_transform=None):
+    def __init__(self, min_length, root='./data', download=True, lang='en', text_transform=None, image_transform=None):
         """
         Constructor
+        :param min_length: Add zero to reach minimum length
         :param root:
         :param download:
         :param lang:
@@ -30,11 +31,13 @@ class AuthorProfilingDataset(Dataset):
         :param image_transform:
         """
         # Properties
+        self.min_length = min_length
         self.root = root
         self.lang = lang
         self.text_transform = text_transform
         self.image_transform = image_transform
         self.downloaded = False
+        self.classes = {'female': 0, 'male': 1}
 
         # List of author's IDs
         self.idxs = list()
@@ -102,8 +105,24 @@ class AuthorProfilingDataset(Dataset):
             # Transformed
             transformed, transformed_size = self.text_transform(document.text)
 
+            # Tensor type
+            tensor_type = transformed.__class__
+
+            # Empty tensor
+            if transformed.ndim == 2:
+                empty = tensor_type(self.min_length, transformed.size(1))
+            else:
+                empty = tensor_type(self.min_length)
+            # end if
+
+            # Fill zero
+            empty.fill_(0)
+
+            # Set
+            empty[:transformed.size(0)] = transformed
+
             # Add
-            tweets.append(transformed)
+            tweets.append(empty)
         # end for
 
         # Get each images
@@ -177,7 +196,7 @@ class AuthorProfilingDataset(Dataset):
                 idx, label = line.split(":::")
 
                 # Save
-                idx_to_labels[idx] = label
+                idx_to_labels[idx] = self.classes[label]
             # end if
         # end for
 
