@@ -181,9 +181,9 @@ class AuthorProfilingDataset(Dataset):
             elif transformed_image.size(1) == 1:
                 transformed_image = torch.cat((transformed_image, transformed_image, transformed_image), dim=1)
             # end if
-            print(image_path)
+            """print(image_path)
             print(images.size())
-            print(transformed_image.size())
+            print(transformed_image.size())"""
             # Add image
             if start:
                 images = transformed_image
