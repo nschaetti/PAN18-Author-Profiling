@@ -109,8 +109,8 @@ class AuthorProfilingDataset(Dataset):
                 max_length = len(document.text)
             # end if
             # Transformed
-            """transformed, transformed_size = self.text_transform(document.text)
-
+            transformed, transformed_size = self.text_transform(document.text)
+            print(transformed.size(0))
             # Tensor type
             tensor_type = transformed.__class__
 
@@ -128,7 +128,7 @@ class AuthorProfilingDataset(Dataset):
             empty[:transformed.size(0)] = transformed
 
             # Add
-            tweets.append(empty)"""
+            tweets.append(empty)
         # end for
         print(max_length)
         exit()
