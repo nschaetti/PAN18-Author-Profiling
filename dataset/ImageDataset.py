@@ -92,6 +92,7 @@ class ImageDataset(Dataset):
         current_image_path = self.images[item]
 
         # Corresponding ID
+        print(current_image_path)
         idx = current_image_path[current_image_path.rfind('/')+1:-7]
 
         # PIL image
