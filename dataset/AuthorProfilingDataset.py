@@ -99,8 +99,11 @@ class AuthorProfilingDataset(Dataset):
 
         # Get each documents
         for document in tree.xpath("/author/documents/document"):
-            print(len(document.text))
-            tweets.append(document.text)
+            # Transformed
+            transformed, transformed_size = self.text_transform(document.text)
+
+            # Add
+            tweets.append(transformed)
         # end for
 
         # Get each images
@@ -115,7 +118,8 @@ class AuthorProfilingDataset(Dataset):
             images.append(im)
         # end for
 
-        return tweets, images, self.labels[current_idxs]
+        # return tweets, images, self.labels[current_idxs]
+        return tweets, self.labels[current_idxs]
     # end __getitem__
 
     ##############################################
