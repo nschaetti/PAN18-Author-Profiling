@@ -102,6 +102,8 @@ class AuthorProfilingDataset(Dataset):
 
         # Get each documents
         for document in tree.xpath("/author/documents/document"):
+            print(document.text)
+            print(len(document.text))
             # Transformed
             transformed, transformed_size = self.text_transform(document.text)
 
