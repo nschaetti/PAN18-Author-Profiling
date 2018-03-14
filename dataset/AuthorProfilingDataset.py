@@ -177,8 +177,9 @@ class AuthorProfilingDataset(Dataset):
 
             # Remove alpha
             if transformed_image.size(1) == 4:
-                print(u"### {}".format(transformed_image.size()))
                 transformed_image = transformed_image[:, 0:3]
+            elif transformed_image.size(1) == 1:
+                transformed_image = torch.cat((transformed_image, transformed_image, transformed_image), dim=1)
             # end if
             print(image_path)
             print(images.size())
