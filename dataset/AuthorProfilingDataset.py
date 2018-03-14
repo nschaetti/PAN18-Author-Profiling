@@ -20,7 +20,7 @@ class AuthorProfilingDataset(Dataset):
     """
 
     # Constructor
-    def __init__(self, min_length, root='./data', download=True, lang='en', text_transform=None, image_transform=None):
+    def __init__(self, min_length, root='./data', download=True, lang='en', text_transform=None, image_transform=None, image_size=600):
         """
         Constructor
         :param min_length: Add zero to reach minimum length
@@ -38,6 +38,7 @@ class AuthorProfilingDataset(Dataset):
         self.image_transform = image_transform
         self.downloaded = False
         self.classes = {'female': 0, 'male': 1}
+        self.image_size = image_size
 
         # List of author's IDs
         self.idxs = list()
@@ -146,16 +147,29 @@ class AuthorProfilingDataset(Dataset):
                 im = Image.new('RGB', (10, 10))
             # end try
 
-            print(im.width)
-            print(im.height)
+            # New size
+            if im.width > im.height:
+                height = self.image_size
+                width = int(self.image_size * (im.width / im.height))
+            else:
+                width = self.image_size
+                height = int(self.image_size * (im.height / im.width))
+            # end if
 
+            # Resize
+            im.thumbnail((width, height))
+
+            # Transformed
+            transformed_image = self.image_transform(im)
+            print(type(transformed_image))
+            print(transformed_image.size())
             # Add image
-            images.append(im)
+            images.append(transformed_image)
         # end for
         exit()
 
-        # return tweets, images, self.labels[current_idxs]
-        return tweets, self.labels[current_idxs]
+        return tweets, images, self.labels[current_idxs]
+        # return tweets, self.labels[current_idxs]
     # end __getitem__
 
     ##############################################
