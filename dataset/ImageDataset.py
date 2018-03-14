@@ -116,12 +116,12 @@ class ImageDataset(Dataset):
         transformed_image = self.image_transform(im)
 
         # Remove alpha
-        if transformed_image.size(1) == 4:
+        if transformed_image.size(0) == 4:
             transformed_image = transformed_image[:, 0:3]
-        elif transformed_image.size(1) == 1:
+        elif transformed_image.size(0) == 1:
             transformed_image = torch.cat((transformed_image, transformed_image, transformed_image), dim=1)
         # end if
-        print(transformed_image.size())
+
         return transformed_image, self.labels[idx]
     # end __getitem__
 
