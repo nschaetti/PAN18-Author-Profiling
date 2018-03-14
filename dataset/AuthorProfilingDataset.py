@@ -6,9 +6,11 @@ from torch.utils.data.dataset import Dataset
 import urllib
 import os
 import zipfile
+import codecs
 from lxml import etree
 import json
 import codecs
+from PIL import Image
 
 
 # Author profiling data set
@@ -55,6 +57,9 @@ class AuthorProfilingDataset(Dataset):
             self._download()
         # end if
 
+        # Load labels
+        self.labels = self._load_labels()
+
         # Load idxs
         self._load()
     # end __init__
@@ -73,13 +78,43 @@ class AuthorProfilingDataset(Dataset):
     # end __len__
 
     # Get item
-    def __getitem__(selfs, item):
+    def __getitem__(self, item):
         """
         Get item
         :param item:
         :return:
         """
-        pass
+        # Current IDXS
+        current_idxs = self.idxs[item]
+
+        # Path to file
+        path_to_file = os.path.join(self.root, current_idxs + ".xml")
+
+        # Load  XML
+        tree = etree.parse(path_to_file)
+
+        # Texts and images
+        tweets = list()
+        images = list()
+
+        # Get each documents
+        for document in tree.xpath("/author/documents/document"):
+            tweets.append(document.text)
+        # end for
+
+        # Get each images
+        for i in range(10):
+            # Image path
+            image_path = os.path.join(self.root, current_idxs + "." + str(i) + ".jpeg")
+
+            # PIL image
+            im = Image.open(image_path)
+
+            # Add image
+            images.append(im)
+        # end for
+
+        return tweets, images, self.labels[current_idxs]
     # end __getitem__
 
     ##############################################
@@ -118,6 +153,30 @@ class AuthorProfilingDataset(Dataset):
         os.remove(path_to_zip)
     # end _download
 
+    # Load labels
+    def _load_labels(self):
+        """
+        Load labels
+        :return:
+        """
+        # Read file
+        label_file = codecs.open(os.path.join(self.root, self.lang + ".txt")).read()
+
+        # IDX to labels
+        idx_to_labels = {}
+
+        # For each line
+        for line in label_file.split("\n"):
+            # ID and label
+            idx, label = line.split(":::")
+
+            # Save
+            idx_to_labels[idx] = label
+        # end for
+
+        return idx_to_labels
+    # end _load_labels
+
     # Load dataset
     def _load(self):
         """
@@ -132,14 +191,17 @@ class AuthorProfilingDataset(Dataset):
 
                 # Load  XML
                 tree = etree.parse(path_to_file)
-                print(tree.xpath("/author"))
-                print(tree.xpath("/author")[0].get("lang"))
-                for document in tree.xpath("/author/documents/document"):
-                    print(document.text)
-                # end for
-                exit()
+
                 # Author
-                print(tree.author.lang)
+                author = tree.xpath("/author")[0]
+
+                # IDXS
+                idxs = file_name[:-4]
+
+                # Check lang
+                if author.get("lang") == self.lang:
+                    self.idxs.append(idxs)
+                # end if
             # end if
         # end for
     # end _load
