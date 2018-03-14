@@ -182,7 +182,8 @@ class AuthorProfilingDataset(Dataset):
             else:
                 # Remove alpha
                 if transformed_image.size(1) == 4:
-                    transformed_image = transformed_image[:, :3]
+                    print(u"### {}".format(transformed_image.size()))
+                    transformed_image = transformed_image[:, 0:3]
                 # end if
                 print(images.size())
                 print(transformed_image.size())
