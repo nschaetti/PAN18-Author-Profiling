@@ -133,7 +133,7 @@ class AuthorProfilingDataset(Dataset):
                 # Load  XML
                 tree = etree.parse(path_to_file)
                 print(tree.xpath("/author"))
-                print(tree.xpath("/author").get("lang"))
+                print(tree.xpath("/author")[0].get("lang"))
                 print(tree.xpath("/author/documents"))
                 exit()
                 # Author
