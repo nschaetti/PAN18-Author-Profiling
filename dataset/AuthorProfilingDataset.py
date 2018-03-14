@@ -161,8 +161,7 @@ class AuthorProfilingDataset(Dataset):
 
             # Transformed
             transformed_image = self.image_transform(im)
-            print(type(transformed_image))
-            print(transformed_image.size())
+
             # Add image
             images.append(transformed_image)
         # end for
