@@ -129,7 +129,15 @@ class AuthorProfilingDataset(Dataset):
         # Get each images
         for i in range(10):
             # Image path
-            image_path = os.path.join(self.root, current_idxs + "." + str(i) + ".jpeg")
+            image_path_jpeg = os.path.join(self.root, current_idxs + "." + str(i) + ".jpeg")
+            image_path_png = os.path.join(self.root, current_idxs + "." + str(i) + ".png")
+
+            # Check existence
+            if os.path.exists(image_path_jpeg):
+                image_path = image_path_jpeg
+            else:
+                image_path = image_path_png
+            # end if
 
             # PIL image
             im = Image.open(image_path)
