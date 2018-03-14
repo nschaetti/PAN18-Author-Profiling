@@ -125,7 +125,7 @@ class AuthorProfilingDataset(Dataset):
             empty.fill_(0)
 
             # Set
-            empty[:transformed.size(0)] = transformed
+            # empty[:transformed.size(0)] = transformed
 
             # Add
             tweets.append(empty)
