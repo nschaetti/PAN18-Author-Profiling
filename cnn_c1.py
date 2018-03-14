@@ -15,7 +15,7 @@ text_transform = text.Character()
 
 # Author profiling training data sets
 pan18loader_training = torch.utils.data.DataLoader(
-    dataset.AuthorProfilingDataset(min_length=140, root="./data/", download=True, text_transform=text_transform),
+    dataset.AuthorProfilingDataset(min_length=145, root="./data/", download=True, text_transform=text_transform),
     batch_size=batch_size, shuffle=True)
 
 # For each samples
