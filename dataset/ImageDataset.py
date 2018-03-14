@@ -92,7 +92,7 @@ class ImageDataset(Dataset):
         current_image_path = self.images[item]
 
         # Corresponding ID
-        idx = current_image_path[current_image_path.find('/')+1:-7]
+        idx = current_image_path[current_image_path.rfind('/')+1:-7]
         print(idx)
         exit()
 
