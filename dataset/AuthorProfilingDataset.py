@@ -180,6 +180,8 @@ class AuthorProfilingDataset(Dataset):
                 images = transformed_image
                 start = False
             else:
+                print(images.size())
+                print(transformed_image.size())
                 images = torch.cat((images, transformed_image), dim=0)
             # end if
         # end for
