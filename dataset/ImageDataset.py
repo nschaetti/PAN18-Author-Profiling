@@ -88,11 +88,11 @@ class ImageDataset(Dataset):
         :return:
         """
         # Current image path
-        current_image_path = self.images[item]
+        current_image_path = os.path.join(self.root, self.images[item])
 
         # Corresponding ID
         print(current_image_path)
-        idx = current_image_path[current_image_path.rfind('/')+1:-7]
+        idx = self.images[item][:self.images[item].find('.')]
 
         # PIL image
         try:
@@ -200,20 +200,11 @@ class ImageDataset(Dataset):
         # For each file
         for file_name in os.listdir(self.root):
             if u".jpeg" in file_name or u".png" in file_name:
-                # Path to the file
-                path_to_file = os.path.join(self.root, file_name)
-
                 # Add
-                self.images.append(path_to_file)
+                self.images.append(file_name)
             elif u".xml" in file_name:
                 # Path to the file
                 path_to_file = os.path.join(self.root, file_name)
-
-                # Load  XML
-                tree = etree.parse(path_to_file)
-
-                # Author
-                author = tree.xpath("/author")[0]
 
                 # IDXS
                 idxs = file_name[:-4]
