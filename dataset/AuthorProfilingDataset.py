@@ -187,7 +187,7 @@ class AuthorProfilingDataset(Dataset):
                     print(transformed_image[0, 0])
                     print(transformed_image[0, -1])
                     plt_image = transformed_image[0]
-                    plt_image = plt_image.transpose((0, 2))
+                    plt_image = plt_image.transpose(0, 2)
                     plt.imshow(plt_image.numpy())
                     plt.show()
                 # end if
