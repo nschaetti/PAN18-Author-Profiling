@@ -168,12 +168,13 @@ class ImageDataset(Dataset):
         Load labels
         :return:
         """
+        # IDX to labels
+        idx_to_labels = {}
+
+        # For each lang
         for lang in ['en', 'ar', 'es']:
             # Read file
             label_file = codecs.open(os.path.join(self.root, lang + ".txt")).read()
-
-            # IDX to labels
-            idx_to_labels = {}
 
             # For each line
             for line in label_file.split("\n"):
