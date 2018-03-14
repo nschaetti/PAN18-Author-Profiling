@@ -9,7 +9,7 @@ from echotorch.transforms import text
 
 
 # Settings
-batch_size = 1
+batch_size = 64
 image_size = 300
 
 # Text tranformer
