@@ -21,7 +21,7 @@ class ImageDataset(Dataset):
     """
 
     # Constructor
-    def __init__(self, root='./data', download=True, lang='en', image_transform=None, image_size=600):
+    def __init__(self, root='./data', download=True, image_transform=None, image_size=600):
         """
         Constructor
         :param root:
@@ -31,7 +31,6 @@ class ImageDataset(Dataset):
         """
         # Properties
         self.root = root
-        self.lang = lang
         self.image_transform = image_transform
         self.downloaded = False
         self.classes = {'female': 0, 'male': 1}
@@ -169,21 +168,23 @@ class ImageDataset(Dataset):
         Load labels
         :return:
         """
-        # Read file
-        label_file = codecs.open(os.path.join(self.root, self.lang + ".txt")).read()
+        for lang in ['en', 'ar', 'es']:
+            # Read file
+            label_file = codecs.open(os.path.join(self.root, lang + ".txt")).read()
 
-        # IDX to labels
-        idx_to_labels = {}
+            # IDX to labels
+            idx_to_labels = {}
 
-        # For each line
-        for line in label_file.split("\n"):
-            if len(line) > 0:
-                # ID and label
-                idx, label = line.split(":::")
+            # For each line
+            for line in label_file.split("\n"):
+                if len(line) > 0:
+                    # ID and label
+                    idx, label = line.split(":::")
 
-                # Save
-                idx_to_labels[idx] = self.classes[label]
-            # end if
+                    # Save
+                    idx_to_labels[idx] = self.classes[label]
+                # end if
+            # end for
         # end for
 
         return idx_to_labels
