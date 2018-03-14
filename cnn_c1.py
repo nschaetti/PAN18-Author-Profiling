@@ -16,9 +16,11 @@ pan18loader_training = torch.utils.data.DataLoader(
     batch_size=batch_size, shuffle=True)
 
 # For each samples
-"""for data in pan18loader_training:
+for data in pan18loader_training:
     # Inputs and labels
-    inputs, images, labels = data
-    print(inputs.size())
-    print(labels.size())
-# end for"""
+    tweets, images, label = data
+    print(tweets)
+    print(images)
+    print(label)
+    print(u"")
+# end for
