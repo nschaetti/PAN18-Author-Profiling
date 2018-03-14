@@ -11,6 +11,7 @@ from lxml import etree
 import json
 import codecs
 from PIL import Image
+import torch
 
 
 # Author profiling data set
@@ -98,11 +99,11 @@ class AuthorProfilingDataset(Dataset):
         tree = etree.parse(path_to_file)
 
         # Texts and images
-        tweets = list()
-        images = list()
+        tweets = torch.Tensor()
+        images = torch.Tensor()
 
         # Get each documents
-        max_length = 0
+        start = True
         for document in tree.xpath("/author/documents/document"):
             # Transformed
             transformed, transformed_size = self.text_transform(document.text)
@@ -123,11 +124,20 @@ class AuthorProfilingDataset(Dataset):
             # Set
             empty[:transformed.size(0)] = transformed
 
+            # Add one empty dim
+            empty = empty.unsqueeze(0)
+
             # Add
-            tweets.append(empty)
+            if start:
+                tweets = empty
+                start = False
+            else:
+                tweets = torch.cat((tweets, empty), dim=0)
+            # end if
         # end for
 
         # Get each images
+        start = True
         for i in range(10):
             # Image path
             image_path_jpeg = os.path.join(self.root, current_idxs + "." + str(i) + ".jpeg")
@@ -162,8 +172,16 @@ class AuthorProfilingDataset(Dataset):
             # Transformed
             transformed_image = self.image_transform(im)
 
+            # Add empty dim
+            transformed_image = transformed_image.unsqueeze(0)
+
             # Add image
-            images.append(transformed_image)
+            if start:
+                images = transformed_image
+                start = False
+            else:
+                images = torch.cat((images, transformed_image), dim=0)
+            # end if
         # end for
 
         return tweets, images, self.labels[current_idxs]
