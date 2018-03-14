@@ -121,7 +121,7 @@ class ImageDataset(Dataset):
         elif transformed_image.size(0) == 1:
             transformed_image = torch.cat((transformed_image, transformed_image, transformed_image), dim=1)
         # end if
-
+        print(transformed_image.size())
         return transformed_image, self.labels[idx]
     # end __getitem__
 
