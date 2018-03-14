@@ -99,6 +99,7 @@ class AuthorProfilingDataset(Dataset):
 
         # Get each documents
         for document in tree.xpath("/author/documents/document"):
+            print(len(document.text))
             tweets.append(document.text)
         # end for
 
