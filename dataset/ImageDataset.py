@@ -91,7 +91,6 @@ class ImageDataset(Dataset):
         current_image_path = os.path.join(self.root, self.images[item])
 
         # Corresponding ID
-        print(current_image_path)
         idx = self.images[item][:self.images[item].find('.')]
 
         # PIL image
@@ -122,7 +121,7 @@ class ImageDataset(Dataset):
         elif transformed_image.size(1) == 1:
             transformed_image = torch.cat((transformed_image, transformed_image, transformed_image), dim=1)
         # end if
-
+        print(transformed_image.size())
         return transformed_image, self.labels[idx]
     # end __getitem__
 
