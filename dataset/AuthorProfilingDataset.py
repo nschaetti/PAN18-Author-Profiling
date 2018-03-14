@@ -167,6 +167,7 @@ class AuthorProfilingDataset(Dataset):
 
         # For each line
         for line in label_file.split("\n"):
+            print(u"Line : {}".format(line))
             print(line.split(":::"))
             print(line.split(":::")[0])
             # ID and label
