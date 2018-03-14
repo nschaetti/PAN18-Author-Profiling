@@ -143,7 +143,7 @@ class AuthorProfilingDataset(Dataset):
             try:
                 im = Image.open(image_path)
             except IOError:
-                im = Image()
+                im = Image.new('RGB', (10, 10))
             # end try
 
             # Add image
