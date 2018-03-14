@@ -101,11 +101,15 @@ class AuthorProfilingDataset(Dataset):
         images = list()
 
         # Get each documents
+        max_length = 0
         for document in tree.xpath("/author/documents/document"):
             print(document.text)
             print(len(document.text))
+            if len(document.text) > max_length:
+                max_length = len(document.text)
+            # end if
             # Transformed
-            transformed, transformed_size = self.text_transform(document.text)
+            """transformed, transformed_size = self.text_transform(document.text)
 
             # Tensor type
             tensor_type = transformed.__class__
@@ -124,8 +128,10 @@ class AuthorProfilingDataset(Dataset):
             empty[:transformed.size(0)] = transformed
 
             # Add
-            tweets.append(empty)
+            tweets.append(empty)"""
         # end for
+        print(max_length)
+        exit()
 
         # Get each images
         for i in range(10):
