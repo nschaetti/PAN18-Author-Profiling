@@ -182,6 +182,10 @@ class AuthorProfilingDataset(Dataset):
             else:
                 print(images.size())
                 print(transformed_image.size())
+                if transformed_image.size(1) == 4:
+                    print(transformed_image[0, 0])
+                    print(transformed_image[0, -1])
+                # end if
                 images = torch.cat((images, transformed_image), dim=0)
             # end if
         # end for
