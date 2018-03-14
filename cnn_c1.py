@@ -23,17 +23,23 @@ image_transform = transforms.Compose([
         transforms.Normalize([0.5, 0.5, 0.5], [1.0, 1.0, 1.0])
     ])
 
+# Author profiling dataset
+# author_profiling_dataset = dataset.AuthorProfilingDataset(min_length=165, root="./data/", download=True, text_transform=text_transform, image_transform=image_transform, image_size=image_size)
+
+# Image data set
+image_dataset = dataset.ImageDataset(root='./data', download=True, image_transform=image_transform, image_size=image_size)
+
 # Author profiling training data sets
-pan18loader_training = torch.utils.data.DataLoader(
-    dataset.AuthorProfilingDataset(min_length=165, root="./data/", download=True, text_transform=text_transform,
-                                   image_transform=image_transform, image_size=image_size),
-    batch_size=batch_size, shuffle=True)
+pan18loader_training = torch.utils.data.DataLoader(image_dataset, batch_size=batch_size, shuffle=True)
 
 # For each samples
 for data in pan18loader_training:
     # Inputs and labels
-    tweets, images, label = data
+    """tweets, images, label = data
     print(tweets.size())
     print(images.size())
-    print(label.size())
+    print(label.size())"""
+    inputs, labels = data
+    print(inputs.size())
+    print(labels.size())
 # end for
