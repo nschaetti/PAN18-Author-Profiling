@@ -135,7 +135,7 @@ class AuthorProfilingDataset(Dataset):
                 print(tree.xpath("/author"))
                 print(tree.xpath("/author")[0].get("lang"))
                 for document in tree.xpath("/author/documents/document"):
-                    print(document)
+                    print(document.text)
                 # end for
                 exit()
                 # Author
