@@ -218,9 +218,7 @@ class ImageDataset(Dataset):
                 idxs = file_name[:-4]
 
                 # Check lang
-                if author.get("lang") == self.lang:
-                    self.idxs.append(idxs)
-                # end if
+                self.idxs.append(idxs)
             # end if
         # end for
     # end _load
