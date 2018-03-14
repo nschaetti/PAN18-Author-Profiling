@@ -8,7 +8,7 @@ from echotorch.transforms import text
 
 
 # Settings
-batch_size = 64
+batch_size = 1
 
 # Author profiling training data sets
 pan18loader_training = torch.utils.data.DataLoader(
