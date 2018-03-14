@@ -105,7 +105,9 @@ class AuthorProfilingDataset(Dataset):
         path_to_zip = os.path.join(self.root, "pan18-author-profiling.zip")
 
         # Download
-        urllib.urlretrieve("http://www.nilsschaetti.com/datasets/pan18-author-profiling.zip", path_to_zip)
+        if not os.path.exists(path_to_zip):
+            urllib.urlretrieve("http://www.nilsschaetti.com/datasets/pan18-author-profiling.zip", path_to_zip)
+        # end if
 
         # Unzip
         zip_ref = zipfile.ZipFile(path_to_zip, 'r')
