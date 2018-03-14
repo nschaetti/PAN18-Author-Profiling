@@ -186,6 +186,7 @@ class AuthorProfilingDataset(Dataset):
                 if transformed_image.size(1) == 4:
                     print(transformed_image[0, 0])
                     print(transformed_image[0, -1])
+                    print(torch.min(transformed_image))
                     plt_image = transformed_image[0, 0:3]
                     plt_image = plt_image.transpose(0, 2)
                     plt.imshow(plt_image.numpy())
