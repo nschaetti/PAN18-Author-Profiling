@@ -22,7 +22,4 @@ pan18loader_training = torch.utils.data.DataLoader(
 for data in pan18loader_training:
     # Inputs and labels
     tweets, label = data
-    print(tweets)
-    print(label)
-    print(u"")
 # end for
