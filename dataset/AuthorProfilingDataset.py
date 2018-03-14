@@ -109,7 +109,7 @@ class AuthorProfilingDataset(Dataset):
             tensor_type = transformed.__class__
 
             # Empty tensor
-            if transformed.ndim == 2:
+            if transformed.dim() == 2:
                 empty = tensor_type(self.min_length, transformed.size(1))
             else:
                 empty = tensor_type(self.min_length)
