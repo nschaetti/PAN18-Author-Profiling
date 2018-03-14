@@ -19,7 +19,8 @@ text_transform = text.Character()
 image_transform = transforms.Compose([
         transforms.CenterCrop(image_size),
         transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        # transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        transforms.Normalize([0.5, 0.5, 0.5], [1.0, 1.0, 1.0])
     ])
 
 # Author profiling training data sets
