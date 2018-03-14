@@ -93,8 +93,6 @@ class ImageDataset(Dataset):
 
         # Corresponding ID
         idx = current_image_path[current_image_path.rfind('/')+1:-7]
-        print(idx)
-        exit()
 
         # PIL image
         try:
