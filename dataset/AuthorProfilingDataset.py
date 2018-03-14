@@ -175,18 +175,18 @@ class AuthorProfilingDataset(Dataset):
             # Add empty dim
             transformed_image = transformed_image.unsqueeze(0)
 
+            # Remove alpha
+            if transformed_image.size(1) == 4:
+                transformed_image = transformed_image[:, 0:3]
+            # end if
+            print(image_path)
+            print(images.size())
+            print(transformed_image.size())
             # Add image
             if start:
                 images = transformed_image
                 start = False
             else:
-                # Remove alpha
-                if transformed_image.size(1) == 4:
-                    transformed_image = transformed_image[:, 0:3]
-                # end if
-                print(image_path)
-                print(images.size())
-                print(transformed_image.size())
                 images = torch.cat((images, transformed_image), dim=0)
             # end if
         # end for
