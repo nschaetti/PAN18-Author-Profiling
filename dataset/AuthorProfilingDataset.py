@@ -150,7 +150,7 @@ class AuthorProfilingDataset(Dataset):
             else:
                 image_path = image_path_png
             # end if
-
+            print(image_path)
             # PIL image
             try:
                 im = Image.open(image_path)
