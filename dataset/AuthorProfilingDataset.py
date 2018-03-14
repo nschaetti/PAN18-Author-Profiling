@@ -140,7 +140,11 @@ class AuthorProfilingDataset(Dataset):
             # end if
 
             # PIL image
-            im = Image.open(image_path)
+            try:
+                im = Image.open(image_path)
+            except IOError:
+                im = Image()
+            # end try
 
             # Add image
             images.append(im)
