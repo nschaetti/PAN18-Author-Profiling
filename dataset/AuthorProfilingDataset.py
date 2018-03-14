@@ -166,7 +166,6 @@ class AuthorProfilingDataset(Dataset):
             # Add image
             images.append(transformed_image)
         # end for
-        exit()
 
         return tweets, images, self.labels[current_idxs]
         # return tweets, self.labels[current_idxs]
