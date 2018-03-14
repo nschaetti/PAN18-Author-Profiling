@@ -108,7 +108,7 @@ class ImageDataset(Dataset):
             width = self.image_size
             height = int(self.image_size * (im.height / im.width))
         # end if
-
+        print(width, height)
         # Resize
         im.thumbnail((width, height))
 
