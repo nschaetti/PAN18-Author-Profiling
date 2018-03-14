@@ -12,7 +12,7 @@ batch_size = 64
 
 # Author profiling training data sets
 pan18loader_training = torch.utils.data.DataLoader(
-    dataset.AuthorIdentificationDataset(root="./data/", download=True),
+    dataset.AuthorProfilingDataset(root="./data/", download=True),
     batch_size=batch_size, shuffle=True)
 
 # For each samples
