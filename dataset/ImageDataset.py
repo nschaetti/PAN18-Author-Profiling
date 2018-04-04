@@ -30,7 +30,7 @@ class ImageDataset(Dataset):
         :param image_transform:
         """
         # Properties
-        self.root = root
+        self.root = os.path.join(root, "2018")
         self.image_transform = image_transform
         self.downloaded = False
         self.classes = {'female': 0, 'male': 1}

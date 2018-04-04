@@ -21,7 +21,7 @@ class TweetDataset(Dataset):
     """
 
     # Constructor
-    def __init__(self, min_length, root='./data', download=True, lang='en', text_transform=None):
+    def __init__(self, min_length, root='./data', download=True, lang='en', text_transform=None, year=2018):
         """
         Constructor
         :param min_length: Add zero to reach minimum length
@@ -32,11 +32,12 @@ class TweetDataset(Dataset):
         """
         # Properties
         self.min_length = min_length
-        self.root = root
+        self.root = os.path.join(root, str(year))
         self.lang = lang
         self.text_transform = text_transform
         self.downloaded = False
         self.classes = {'female': 0, 'male': 1}
+        self.year = year
 
         # List of author's IDs
         self.idxs = list()
@@ -148,7 +149,11 @@ class TweetDataset(Dataset):
         Create the root directory
         :return:
         """
+        # Root
         os.mkdir(self.root)
+
+        # Create year dir
+        os.mkdir(os.path.join(self.root, str(self.year)))
     # end _create_root
 
     # Download the dataset
@@ -157,12 +162,19 @@ class TweetDataset(Dataset):
         Download the dataset
         :return:
         """
+        # Filename
+        if self.year == 2017:
+            zip_filename = "pan17-author-profiling.zip"
+        elif self.year == 2018:
+            zip_filename = "pan18-author-profiling.zip"
+        # end if
+
         # Path to zip file
-        path_to_zip = os.path.join(self.root, "pan18-author-profiling.zip")
+        path_to_zip = os.path.join(self.root, zip_filename)
 
         # Download
         if not os.path.exists(path_to_zip):
-            urllib.urlretrieve("http://www.nilsschaetti.com/datasets/pan18-author-profiling.zip", path_to_zip)
+            urllib.urlretrieve("http://www.nilsschaetti.com/datasets/" + zip_filename, path_to_zip)
         # end if
 
         # Unzip

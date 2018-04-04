@@ -33,7 +33,7 @@ class AuthorProfilingDataset(Dataset):
         """
         # Properties
         self.min_length = min_length
-        self.root = root
+        self.root = os.path.join(root, "2018")
         self.lang = lang
         self.text_transform = text_transform
         self.image_transform = image_transform
