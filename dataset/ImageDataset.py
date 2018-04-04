@@ -21,7 +21,7 @@ class ImageDataset(Dataset):
     """
 
     # Constructor
-    def __init__(self, root='./data', download=True, image_transform=None, image_size=600):
+    def __init__(self, root='./data', download=True, image_transform=None, image_size=600, train=True, val=0.1):
         """
         Constructor
         :param root:
@@ -35,6 +35,8 @@ class ImageDataset(Dataset):
         self.downloaded = False
         self.classes = {'female': 0, 'male': 1}
         self.image_size = image_size
+        self.train = train
+        self.val = val
 
         # Image list
         self.images = list()
@@ -77,7 +79,20 @@ class ImageDataset(Dataset):
         Length
         :return:
         """
-        return len(self.images)
+        # Total len
+        total_length = len(self.images)
+
+        # Validation len
+        validation_length = int(total_length * self.val)
+
+        # Train length
+        train_length = total_length - validation_length
+
+        if self.train:
+            return train_length
+        else:
+            return validation_length
+        # end if
     # end __len__
 
     # Get item
@@ -154,10 +169,12 @@ class ImageDataset(Dataset):
 
         # Download
         if not os.path.exists(path_to_zip):
+            print(u"Downloading {}".format("http://www.nilsschaetti.com/datasets/pan18-author-profiling.zip"))
             urllib.urlretrieve("http://www.nilsschaetti.com/datasets/pan18-author-profiling.zip", path_to_zip)
         # end if
 
         # Unzip
+        print(u"Unziping {}".format(path_to_zip))
         zip_ref = zipfile.ZipFile(path_to_zip, 'r')
         zip_ref.extractall(self.root)
         zip_ref.close()
