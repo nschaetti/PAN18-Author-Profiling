@@ -21,7 +21,7 @@ class TweetDataset(Dataset):
     """
 
     # Constructor
-    def __init__(self, min_length, root='./data', download=True, lang='en', text_transform=None, year=2018):
+    def __init__(self, min_length, root='./data', download=True, lang='en', text_transform=None, year=2018, train=True, val=0.1):
         """
         Constructor
         :param min_length: Add zero to reach minimum length
@@ -38,6 +38,8 @@ class TweetDataset(Dataset):
         self.downloaded = False
         self.classes = {'female': 0, 'male': 1}
         self.year = year
+        self.train = train
+        self.val = val
 
         # List of author's IDs
         self.idxs = list()
@@ -77,7 +79,20 @@ class TweetDataset(Dataset):
         Length
         :return:
         """
-        return len(self.idxs)
+        # Total len
+        total_length = len(self.idxs)
+
+        # Validation len
+        validation_length = int(total_length * self.val)
+
+        # Train length
+        train_length = total_length - validation_length
+
+        if self.train:
+            return train_length
+        else:
+            return validation_length
+        # end if
     # end __len__
 
     # Get item
@@ -174,10 +189,12 @@ class TweetDataset(Dataset):
 
         # Download
         if not os.path.exists(path_to_zip):
+            print(u"Downloading {}".format("http://www.nilsschaetti.com/datasets/" + zip_filename))
             urllib.urlretrieve("http://www.nilsschaetti.com/datasets/" + zip_filename, path_to_zip)
         # end if
 
         # Unzip
+        print(u"Unziping {}".format(path_to_zip))
         zip_ref = zipfile.ZipFile(path_to_zip, 'r')
         zip_ref.extractall(self.root)
         zip_ref.close()
@@ -202,7 +219,11 @@ class TweetDataset(Dataset):
         for line in label_file.split("\n"):
             if len(line) > 0:
                 # ID and label
-                idx, label = line.split(":::")
+                if self.year == 2018:
+                    idx, label = line.split(":::")
+                elif self.year == 2017:
+                    idx, label, _ = line.split(":::")
+                # end if
 
                 # Save
                 idx_to_labels[idx] = self.classes[label]
