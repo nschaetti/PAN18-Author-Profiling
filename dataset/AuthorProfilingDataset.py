@@ -21,7 +21,7 @@ class AuthorProfilingDataset(Dataset):
     """
 
     # Constructor
-    def __init__(self, min_length, root='./data', download=True, lang='en', text_transform=None, image_transform=None, image_size=600):
+    def __init__(self, min_length, root='./data', download=True, lang='en', text_transform=None, image_transform=None, image_size=600, train=True):
         """
         Constructor
         :param min_length: Add zero to reach minimum length
@@ -40,6 +40,7 @@ class AuthorProfilingDataset(Dataset):
         self.downloaded = False
         self.classes = {'female': 0, 'male': 1}
         self.image_size = image_size
+        self.train = train
 
         # List of author's IDs
         self.idxs = list()
