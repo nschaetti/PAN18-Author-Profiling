@@ -16,7 +16,7 @@ import os
 
 
 # Settings
-batch_size = 30
+batch_size = 16
 min_length = 165
 voc_size = 1580
 
@@ -28,7 +28,9 @@ parser.add_argument("--output", type=str, help="Model output file", default='.')
 parser.add_argument("--dim", type=int, help="Embedding dimension", default=30)
 parser.add_argument("--no-cuda", action='store_true', default=False, help="Enables CUDA training")
 parser.add_argument("--epoch", type=int, help="Epoch", default=300)
-parser.add_argument("--lang", type=str, help="Language", default='.')
+parser.add_argument("--lang", type=str, help="Language", default='en')
+parser.add_argument("--training-tweet-count", type=int, help="Number of tweets to train", default=2000)
+parser.add_argument("--test-tweet-count", type=int, help="Number of tweets to test", default=200)
 args = parser.parse_args()
 
 # Use CUDA?
@@ -88,13 +90,17 @@ for epoch in range(args.epoch):
 
     # For each training set
     for training_set in [pan17loader_training, pan17loader_validation, pan18loader_training]:
+        count = 0
         for data in training_set:
             # Inputs and labels
             inputs, labels = data
 
+            # Batch size
+            data_batch_size = inputs.size(0)
+
             # Merge batch and authors
             inputs = inputs.view(-1, min_length)
-            labels = labels.view(batch_size * 100)
+            labels = labels.view(data_batch_size * 100)
 
             # Variable and CUDA
             inputs, labels = Variable(inputs), Variable(labels)
@@ -106,7 +112,12 @@ for epoch in range(args.epoch):
             model.zero_grad()
 
             # Compute output
-            log_probs = model(inputs)
+            try:
+                log_probs = model(inputs)
+            except RuntimeError:
+                print(inputs.size())
+                exit()
+            # end try
 
             # Loss
             loss = loss_function(log_probs, labels)
@@ -118,7 +129,12 @@ for epoch in range(args.epoch):
             # Add
             training_loss += loss.data[0]
             training_total += 1.0
+            count += inputs.size(0)
+            if count >= int(args.training_tweet_count / 3):
+                break
+            # end if
         # end for
+        print(training_total)
     # end for
 
     # Counters
@@ -126,6 +142,7 @@ for epoch in range(args.epoch):
     success = 0.0
 
     # For validation set
+    count = 0
     for data in pan18loader_validation:
         # Inputs and labels
         inputs, labels = data
@@ -156,6 +173,10 @@ for epoch in range(args.epoch):
         # Add loss
         test_loss += loss.data[0]
         test_total += 1.0
+        count += inputs.size(0)
+        if count >= args.test_tweet_count:
+            break
+        # end if
     # end for
 
     # Accuracy
