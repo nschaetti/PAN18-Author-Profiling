@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def imshow(inp, title=None):
+def imshow(inp):
     """Imshow for Tensor."""
     inp = inp.numpy().transpose((1, 2, 0))
     mean = np.array([0.485, 0.456, 0.406])
@@ -29,20 +29,19 @@ def imshow(inp, title=None):
 
 
 # Settings
-batch_size = 5
+batch_size = 20
 image_size = 224
 min_length = 165
-n_epoch = 1
-voc_size = 1000
 
 # Argument parser
-parser = argparse.ArgumentParser(description="PAN18 Author Profiling CNN-C1")
+parser = argparse.ArgumentParser(description="PAN18 Author Profiling image")
 
 # Argument
 parser.add_argument("--output", type=str, help="Model output file", default='.')
-parser.add_argument("--dim", type=int, help="Embedding dimension", default=300)
 parser.add_argument("--no-cuda", action='store_true', default=False, help="Enables CUDA training")
 parser.add_argument("--epoch", type=int, help="Epoch", default=300)
+parser.add_argument("--training-image-count", type=int, help="Number of images to train", default=2000)
+parser.add_argument("--test-image-count", type=int, help="Number of images to test", default=200)
 args = parser.parse_args()
 
 # Use CUDA?
@@ -51,15 +50,17 @@ args.cuda = not args.no_cuda and torch.cuda.is_available()
 # Image augmentation and normalization
 data_transforms = {
     'train': transforms.Compose([
-        transforms.RandomResizedCrop(224),
+        transforms.Resize(image_size),
+        # transforms.RandomResizedCrop(image_size),
         transforms.RandomHorizontalFlip(),
+        transforms.CenterCrop(image_size),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         # transforms.Normalize([0.5, 0.5, 0.5], [1.0, 1.0, 1.0])
     ]),
     'val': transforms.Compose([
-        transforms.Resize(256),
-        transforms.CenterCrop(224),
+        # transforms.Resize(image_size),
+        transforms.CenterCrop(image_size),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         # transforms.Normalize([0.5, 0.5, 0.5], [1.0, 1.0, 1.0])
@@ -93,29 +94,30 @@ best_acc = 0.0
 optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 
 # Epoch
-for epoch in range(n_epoch):
+for epoch in range(args.epoch):
     # Total losses
     training_loss = 0.0
     training_total = 0.0
     test_loss = 0.0
     test_total = 0.0
+    image_count = 0
 
     # For each training samples
     for data in pan18loader_training:
         # Inputs and labels
-        images, label = data
+        images, labels = data
 
         # Variable and CUDA
-        inputs, labels = Variable(inputs), Variable(labels)
+        images, labels = Variable(images), Variable(labels)
         if args.cuda:
-            inputs, labels = inputs.cuda(), labels.cuda()
+            inputs, labels = images.cuda(), labels.cuda()
         # end if
 
         # Zero grad
         model.zero_grad()
 
         # Compute output
-        log_probs = model(inputs)
+        log_probs = model(images)
 
         # Loss
         loss = loss_function(log_probs, labels)
@@ -127,6 +129,10 @@ for epoch in range(n_epoch):
         # Add
         training_loss += loss.data[0]
         training_total += 1.0
+        image_count += images.size(0)
+        if image_count >= args.training_image_count:
+            break
+        # end if
     # end for
 
     # Counters
@@ -134,18 +140,19 @@ for epoch in range(n_epoch):
     success = 0.0
 
     # For each validation samples
+    image_count = 0
     for data in pan18loader_validation:
         # Inputs and labels
-        images, label = data
+        images, labels = data
 
         # Variable and CUDA
-        inputs, labels = Variable(inputs), Variable(labels)
+        images, labels = Variable(images), Variable(labels)
         if args.cuda:
-            inputs, labels = inputs.cuda(), labels.cuda()
+            images, labels = images.cuda(), labels.cuda()
         # end if
 
         # Forward
-        model_outputs = model(inputs)
+        model_outputs = model(images)
 
         # Compute loss
         loss = loss_function(model_outputs, labels)
@@ -160,6 +167,10 @@ for epoch in range(n_epoch):
         # Add loss
         test_loss += loss.data[0]
         test_total += 1.0
+        image_count += images.size(0)
+        if image_count >= args.test_image_count:
+            break
+        # end if
     # end for
 
     # Accuracy
