@@ -40,6 +40,7 @@ class TweetDataset(Dataset):
         self.year = year
         self.train = train
         self.val = val
+        self.max = 0
 
         # List of author's IDs
         self.idxs = list()
@@ -118,8 +119,15 @@ class TweetDataset(Dataset):
         start = True
         for document in tree.xpath("/author/documents/document"):
             # Transformed
-            transformed, transformed_size = self.text_transform(document.text)
-
+            transformed = self.text_transform(unicode(document.text))
+            try:
+                if transformed.size(0) > self.max:
+                    self.max = transformed.size(0)
+                # end if
+            except RuntimeError:
+                print(unicode(document.text))
+                print(transformed.size())
+            # end try
             # Tensor type
             tensor_type = transformed.__class__
 
@@ -134,7 +142,13 @@ class TweetDataset(Dataset):
             empty.fill_(0)
 
             # Set
-            empty[:transformed.size(0)] = transformed
+            try:
+                empty[:transformed.size(0)] = transformed
+            except RuntimeError:
+                print(unicode(document.text))
+                print(empty.size())
+                print(transformed.size())
+            # end try
 
             # Add one empty dim
             empty = empty.unsqueeze(0)
@@ -210,7 +224,7 @@ class TweetDataset(Dataset):
         :return:
         """
         # Read file
-        label_file = codecs.open(os.path.join(self.root, self.lang + ".txt")).read()
+        label_file = codecs.open(os.path.join(self.root, self.lang + ".txt"), encoding='utf-8').read()
 
         # IDX to labels
         idx_to_labels = {}
