@@ -115,23 +115,6 @@ class ImageDataset(Dataset):
             im = Image.new('RGB', (10, 10))
         # end try
 
-        # New size
-        if im.width > im.height:
-            height = self.image_size
-            width = int(self.image_size * (im.width / im.height))
-        else:
-            width = self.image_size
-            height = int(self.image_size * (im.height / im.width))
-        # end if
-
-        # Resize
-        try:
-            im.thumbnail((width, height))
-        except IOError:
-            print(width, height)
-            exit()
-        # end try
-
         # Transformed
         transformed_image = self.image_transform(im)
 
