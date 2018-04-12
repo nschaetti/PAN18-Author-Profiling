@@ -68,7 +68,6 @@ pan18loader_validation = torch.utils.data.DataLoader(tweet_dataset_val_18, batch
 loss_function = nn.CrossEntropyLoss()
 
 # Model
-# model = CNNT(vocab_size=voc_size, embedding_dim=args.dim)
 model = models.CNNCTweet(text_length=min_length, vocab_size=voc_size, embedding_dim=args.dim)
 if args.cuda:
     model.cuda()
