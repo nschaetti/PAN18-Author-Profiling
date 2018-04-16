@@ -1,4 +1,25 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+#
+# File : dataset/AuthorProfilingDataset.py
+# Description : The PAN18 author profiling dataset.
+# Auteur : Nils Schaetti <nils.schaetti@unine.ch>
+# Date : 01.02.2017 17:59:05
+# Lieu : Neuchâtel, Suisse
+#
+# This file is part of the PAN18 author profiling challenge code.
+# The PAN18 author profiling challenge code is a set of free software:
+# you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Foobar is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# You should have received a copy of the GNU General Public License
+# along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 #
 
 # Imports
@@ -6,12 +27,14 @@ from torch.utils.data.dataset import Dataset
 import urllib
 import os
 import zipfile
-import codecs
 from lxml import etree
-import json
 import codecs
-from PIL import Image
+from PIL import Image, ImageFile
 import torch
+
+
+# Avoid issue with truncated images
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 # Author profiling data set
@@ -21,26 +44,25 @@ class AuthorProfilingDataset(Dataset):
     """
 
     # Constructor
-    def __init__(self, min_length, root='./data', download=True, lang='en', text_transform=None, image_transform=None, image_size=600, train=True):
+    def __init__(self, root='./data', download=True, lang='en', text_transform=None, image_transform=None, train=True, val=0.1):
         """
         Constructor
-        :param min_length: Add zero to reach minimum length
-        :param root:
-        :param download:
-        :param lang:
-        :param text_transform:
-        :param image_transform:
+        :param root: Data root directory
+        :param download: Download the dataset?
+        :param lang: Which lang to use
+        :param text_transform: Text transformation (from TorchLanguage)
+        :param image_transform: Image transformation (from TorchVision)
         """
         # Properties
-        self.min_length = min_length
         self.root = os.path.join(root, "2018")
         self.lang = lang
         self.text_transform = text_transform
         self.image_transform = image_transform
         self.downloaded = False
         self.classes = {'female': 0, 'male': 1}
-        self.image_size = image_size
         self.train = train
+        self.last_idxs = list()
+        self.val = val
 
         # List of author's IDs
         self.idxs = list()
@@ -78,20 +100,50 @@ class AuthorProfilingDataset(Dataset):
     def __len__(self):
         """
         Length
-        :return:
+        :return: Data set length
         """
-        return len(self.idxs)
+        # Total len
+        total_length = len(self.idxs)
+
+        # Validation len
+        validation_length = int(total_length * self.val)
+
+        # Train length
+        train_length = total_length - validation_length
+
+        if self.train:
+            return train_length
+        else:
+            return validation_length
+        # end if
     # end __len__
 
     # Get item
     def __getitem__(self, item):
         """
         Get item
-        :param item:
-        :return:
+        :param item: Which item to return
+        :return: The item
         """
-        # Current IDXS
-        current_idxs = self.idxs[item]
+        # Total len
+        total_length = len(self.idxs)
+
+        # Validation len
+        validation_length = int(total_length * self.val)
+
+        # Train length
+        train_length = total_length - validation_length
+
+        # Current set
+        if self.train:
+            current_set = self.idxs[:train_length]
+        else:
+            current_set = self.idxs[train_length:]
+        # end if
+
+        # Current IDXs
+        current_idxs = current_set[item]
+        self.last_idxs.append(current_idxs)
 
         # Path to file
         path_to_file = os.path.join(self.root, current_idxs + ".xml")
@@ -107,33 +159,17 @@ class AuthorProfilingDataset(Dataset):
         start = True
         for document in tree.xpath("/author/documents/document"):
             # Transformed
-            transformed, transformed_size = self.text_transform(document.text)
-
-            # Tensor type
-            tensor_type = transformed.__class__
-
-            # Empty tensor
-            if transformed.dim() == 2:
-                empty = tensor_type(self.min_length, transformed.size(1))
-            else:
-                empty = tensor_type(self.min_length)
-            # end if
-
-            # Fill zero
-            empty.fill_(0)
-
-            # Set
-            empty[:transformed.size(0)] = transformed
+            transformed = self.text_transform(document.text)
 
             # Add one empty dim
-            empty = empty.unsqueeze(0)
+            transformed = transformed.unsqueeze(0)
 
             # Add
             if start:
-                tweets = empty
+                tweets = transformed
                 start = False
             else:
-                tweets = torch.cat((tweets, empty), dim=0)
+                tweets = torch.cat((tweets, transformed), dim=0)
             # end if
         # end for
 
@@ -155,6 +191,7 @@ class AuthorProfilingDataset(Dataset):
             try:
                 im = Image.open(image_path)
             except IOError:
+                print(u"IOError while loading {}".format(image_path))
                 im = Image.new('RGB', (10, 10))
             # end try
 
@@ -181,7 +218,6 @@ class AuthorProfilingDataset(Dataset):
         # end for
 
         return tweets, images, self.labels[current_idxs]
-        # return tweets, self.labels[current_idxs]
     # end __getitem__
 
     ##############################################
@@ -191,8 +227,7 @@ class AuthorProfilingDataset(Dataset):
     # Create the root directory
     def _create_root(self):
         """
-        Create the root directory
-        :return:
+        Create the root directory.
         """
         os.mkdir(self.root)
     # end _create_root
@@ -200,8 +235,7 @@ class AuthorProfilingDataset(Dataset):
     # Download the dataset
     def _download(self):
         """
-        Download the dataset
-        :return:
+        Download the data set.
         """
         # Path to zip file
         path_to_zip = os.path.join(self.root, "pan18-author-profiling.zip")
@@ -224,7 +258,7 @@ class AuthorProfilingDataset(Dataset):
     def _load_labels(self):
         """
         Load labels
-        :return:
+        :return: Dictionary from id to labels
         """
         # Read file
         label_file = codecs.open(os.path.join(self.root, self.lang + ".txt")).read()
@@ -250,7 +284,6 @@ class AuthorProfilingDataset(Dataset):
     def _load(self):
         """
         Load the dataset
-        :return:
         """
         # For each file
         for file_name in os.listdir(self.root):
