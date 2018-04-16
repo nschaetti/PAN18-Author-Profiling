@@ -1,4 +1,25 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+#
+# File : dataset/TweetDataset.py
+# Description : The PAN17/18 tweet data set for gender profiling.
+# Auteur : Nils Schaetti <nils.schaetti@unine.ch>
+# Date : 01.02.2017 17:59:05
+# Lieu : Neuchâtel, Suisse
+#
+# This file is part of the PAN18 author profiling challenge code.
+# The PAN18 author profiling challenge code is a set of free software:
+# you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Foobar is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# You should have received a copy of the GNU General Public License
+# along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 #
 
 # Imports
@@ -6,32 +27,27 @@ from torch.utils.data.dataset import Dataset
 import urllib
 import os
 import zipfile
-import codecs
 from lxml import etree
-import json
 import codecs
-from PIL import Image
 import torch
 
 
-# Tweet data set
+# The PAN17/18 tweet data set
 class TweetDataset(Dataset):
     """
     Tweet dataset
     """
 
     # Constructor
-    def __init__(self, min_length, root='./data', download=True, lang='en', text_transform=None, year=2018, train=True, val=0.1):
+    def __init__(self, root='./data', download=True, lang='en', text_transform=None, year=2018, train=True, val=0.1):
         """
         Constructor
-        :param min_length: Add zero to reach minimum length
-        :param root:
-        :param download:
-        :param lang:
-        :param text_transform:
+        :param root: Dataset root directory
+        :param download: Do you want to download the dataset?
+        :param lang: Which lang to load?
+        :param text_transform: Text transformation (from TorchLanguage)
         """
         # Properties
-        self.min_length = min_length
         self.root = os.path.join(root, str(year))
         self.lang = lang
         self.text_transform = text_transform
@@ -41,6 +57,8 @@ class TweetDataset(Dataset):
         self.train = train
         self.val = val
         self.max = 0
+        self.input_dim = 0
+        self.transformed_dim = 0
 
         # List of author's IDs
         self.idxs = list()
@@ -78,7 +96,7 @@ class TweetDataset(Dataset):
     def __len__(self):
         """
         Length
-        :return:
+        :return: The data set length
         """
         # Total len
         total_length = len(self.idxs)
@@ -100,11 +118,27 @@ class TweetDataset(Dataset):
     def __getitem__(self, item):
         """
         Get item
-        :param item:
-        :return:
+        :param item: The item's index to return
+        :return: The corresponding item
         """
+        # Total len
+        total_length = len(self.idxs)
+
+        # Validation len
+        validation_length = int(total_length * self.val)
+
+        # Train length
+        train_length = total_length - validation_length
+
+        # Current set
+        if self.train:
+            current_set = self.idxs[:train_length]
+        else:
+            current_set = self.idxs[train_length:]
+        # end if
+
         # Current IDXS
-        current_idxs = self.idxs[item]
+        current_idxs = current_set[item]
 
         # Path to file
         path_to_file = os.path.join(self.root, current_idxs + ".xml")
@@ -120,47 +154,26 @@ class TweetDataset(Dataset):
         for document in tree.xpath("/author/documents/document"):
             # Transformed
             transformed = self.text_transform(unicode(document.text))
-            try:
-                if transformed.size(0) > self.max:
-                    self.max = transformed.size(0)
-                # end if
-            except RuntimeError:
-                print(unicode(document.text))
-                print(transformed.size())
-            # end try
-            # Tensor type
-            tensor_type = transformed.__class__
-
-            # Empty tensor
-            if transformed.dim() == 2:
-                empty = tensor_type(self.min_length, transformed.size(1))
-            else:
-                empty = tensor_type(self.min_length)
-            # end if
-
-            # Fill zero
-            empty.fill_(0)
-
-            # Set
-            try:
-                empty[:transformed.size(0)] = transformed
-            except RuntimeError:
-                print(unicode(document.text))
-                print(empty.size())
-                print(transformed.size())
-            # end try
 
             # Add one empty dim
-            empty = empty.unsqueeze(0)
+            transformed = transformed.unsqueeze(0)
 
             # Add
             if start:
-                tweets = empty
+                tweets = transformed
                 start = False
             else:
-                tweets = torch.cat((tweets, empty), dim=0)
+                tweets = torch.cat((tweets, transformed), dim=0)
             # end if
         # end for
+
+        # Check number of tweets
+        if tweets.size(0) != 100:
+            tensor_type = tweets.__class__
+            for i in range(100-tweets.size(0)):
+                tweets = torch.cat((tweets, tensor_type(1, transformed.size(1)).fill_(0)))
+            # end for
+        # end if
 
         # Labels
         labels = torch.LongTensor(tweets.size(0)).fill_(self.labels[current_idxs])
