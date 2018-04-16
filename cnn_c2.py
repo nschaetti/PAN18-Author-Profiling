@@ -1,10 +1,30 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+#
+# File : cnn_c2.py
+# Description : Train CNN-C2.
+# Auteur : Nils Schaetti <nils.schaetti@unine.ch>
+# Date : 01.02.2017 17:59:05
+# Lieu : Neuchâtel, Suisse
+#
+# This file is part of the PAN18 author profiling challenge code.
+# The PAN18 author profiling challenge code is a set of free software:
+# you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Foobar is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# You should have received a copy of the GNU General Public License
+# along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 #
 
 # Imports
 import torch
 import dataset
-from torchlanguage import transforms
 from torchlanguage import models
 import argparse
 import torch.nn as nn
@@ -12,12 +32,7 @@ from torch.autograd import Variable
 from torch import optim
 import copy
 import os
-
-
-# Settings
-batch_size = 30
-min_length = 165
-voc_size = 20311
+from tools import settings
 
 # Argument parser
 parser = argparse.ArgumentParser(description="PAN18 Author Profiling CNN-C2")
@@ -28,44 +43,39 @@ parser.add_argument("--dim", type=int, help="Embedding dimension", default=50)
 parser.add_argument("--no-cuda", action='store_true', default=False, help="Enables CUDA training")
 parser.add_argument("--epoch", type=int, help="Epoch", default=300)
 parser.add_argument("--lang", type=str, help="Language", default='en')
+parser.add_argument("--batch-size", type=int, help="Batch size", default=20)
+parser.add_argument("--val-batch-size", type=int, help="Val. batch size", default=5)
 args = parser.parse_args()
 
 # Use CUDA?
 args.cuda = not args.no_cuda and torch.cuda.is_available()
 
-# Text tranformer
-text_transform = transforms.Compose([
-    transforms.RemoveRegex(regex=r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'),
-    transforms.ToLower(),
-    transforms.Character2Gram(),
-    transforms.ToIndex(start_ix=1)
-])
-
 # Tweet data set 2017 training
-tweet_dataset_train_17 = dataset.TweetDataset(min_length=min_length, root='./data/', download=True, lang=args.lang,
+tweet_dataset_train_17 = dataset.TweetDataset(root='./data/', download=True, lang=args.lang,
                                               text_transform=text_transform, year=2017, train=True)
-pan17loader_training = torch.utils.data.DataLoader(tweet_dataset_train_17, batch_size=batch_size, shuffle=True)
+pan17loader_training = torch.utils.data.DataLoader(tweet_dataset_train_17, batch_size=args.batch_size, shuffle=True)
 
 # Tweet data set 2017 validation
-tweet_dataset_val_17 = dataset.TweetDataset(min_length=min_length, root='./data/', download=True, lang=args.lang,
+tweet_dataset_val_17 = dataset.TweetDataset(root='./data/', download=True, lang=args.lang,
                                             text_transform=text_transform, year=2017, train=False)
-pan17loader_validation = torch.utils.data.DataLoader(tweet_dataset_val_17, batch_size=batch_size, shuffle=True)
+pan17loader_validation = torch.utils.data.DataLoader(tweet_dataset_val_17, batch_size=args.batch_size, shuffle=True)
 
 # Tweet data set 2018 training
-tweet_dataset_train_18 = dataset.TweetDataset(min_length=min_length, root='./data/', download=True, lang=args.lang,
+tweet_dataset_train_18 = dataset.TweetDataset(root='./data/', download=True, lang=args.lang,
                                               text_transform=text_transform, year=2018, train=True)
-pan18loader_training = torch.utils.data.DataLoader(tweet_dataset_train_18, batch_size=batch_size, shuffle=True)
+pan18loader_training = torch.utils.data.DataLoader(tweet_dataset_train_18, batch_size=args.batch_size, shuffle=True)
 
 # Tweet data set 2018 validation
-tweet_dataset_val_18 = dataset.TweetDataset(min_length=min_length, root='./data/', download=True, lang=args.lang,
+tweet_dataset_val_18 = dataset.TweetDataset(root='./data/', download=True, lang=args.lang,
                                             text_transform=text_transform, year=2018, train=False)
-pan18loader_validation = torch.utils.data.DataLoader(tweet_dataset_val_18, batch_size=batch_size, shuffle=True)
+pan18loader_validation = torch.utils.data.DataLoader(tweet_dataset_val_18, batch_size=args.val_batch_size, shuffle=True)
 
 # Loss function
 loss_function = nn.CrossEntropyLoss()
 
 # Model
-model = models.CNNCTweet(text_length=min_length, vocab_size=voc_size, embedding_dim=args.dim)
+model = models.CNNCTweet(text_length=settings.min_length, vocab_size=settings.voc_sizes_c1[args.lang],
+                         embedding_dim=args.dim)
 if args.cuda:
     model.cuda()
 # end if

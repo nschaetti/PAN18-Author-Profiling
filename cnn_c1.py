@@ -1,78 +1,56 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+#
+# File : cnn_c1.py
+# Description : Train CNN-C1.
+# Auteur : Nils Schaetti <nils.schaetti@unine.ch>
+# Date : 01.02.2017 17:59:05
+# Lieu : Neuchâtel, Suisse
+#
+# This file is part of the PAN18 author profiling challenge code.
+# The PAN18 author profiling challenge code is a set of free software:
+# you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Foobar is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# You should have received a copy of the GNU General Public License
+# along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
 #
 
 # Imports
 import torch
-from torchlanguage import transforms
 from torchlanguage import models
-import dataset
-import argparse
 import torch.nn as nn
-from modules import CNNT
 from torch.autograd import Variable
 from torch import optim
 import copy
 import os
+from tools import functions, settings
 
+# Parse argument
+args = functions.argument_parser_training_model('tweet')
 
-# Settings
-batch_size = 16
-min_length = 165
-voc_size = 1580
+# Transformer
+transformer = functions.tweet_transformer(args.lang, args.n_gram)
 
-# Argument parser
-parser = argparse.ArgumentParser(description="PAN18 Author Profiling CNN-C1")
-
-# Argument
-parser.add_argument("--output", type=str, help="Model output file", default='.')
-parser.add_argument("--dim", type=int, help="Embedding dimension", default=30)
-parser.add_argument("--no-cuda", action='store_true', default=False, help="Enables CUDA training")
-parser.add_argument("--epoch", type=int, help="Epoch", default=300)
-parser.add_argument("--lang", type=str, help="Language", default='en')
-parser.add_argument("--training-tweet-count", type=int, help="Number of tweets to train", default=2000)
-parser.add_argument("--test-tweet-count", type=int, help="Number of tweets to test", default=200)
-args = parser.parse_args()
-
-# Use CUDA?
-args.cuda = not args.no_cuda and torch.cuda.is_available()
-
-# Text tranformer
-text_transform = transforms.Compose([
-    transforms.RemoveRegex(regex=r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'),
-    transforms.ToLower(),
-    transforms.Character(),
-    transforms.ToIndex(start_ix=1)
-])
-
-# Tweet data set 2017 training
-tweet_dataset_train_17 = dataset.TweetDataset(min_length=min_length, root='./data/', download=True, lang=args.lang,
-                                              text_transform=text_transform, year=2017, train=True)
-pan17loader_training = torch.utils.data.DataLoader(tweet_dataset_train_17, batch_size=batch_size, shuffle=True)
-
-# Tweet data set 2017 validation
-tweet_dataset_val_17 = dataset.TweetDataset(min_length=min_length, root='./data/', download=True, lang=args.lang,
-                                            text_transform=text_transform, year=2017, train=False)
-pan17loader_validation = torch.utils.data.DataLoader(tweet_dataset_val_17, batch_size=batch_size, shuffle=True)
-
-# Tweet data set 2018 training
-tweet_dataset_train_18 = dataset.TweetDataset(min_length=min_length, root='./data/', download=True, lang=args.lang,
-                                              text_transform=text_transform, year=2018, train=True)
-pan18loader_training = torch.utils.data.DataLoader(tweet_dataset_train_18, batch_size=batch_size, shuffle=True)
-
-# Tweet data set 2018 validation
-tweet_dataset_val_18 = dataset.TweetDataset(min_length=min_length, root='./data/', download=True, lang=args.lang,
-                                            text_transform=text_transform, year=2018, train=False)
-pan18loader_validation = torch.utils.data.DataLoader(tweet_dataset_val_18, batch_size=batch_size, shuffle=True)
+# Load data sets
+pan17loader_training, pan17loader_validation, pan18loader_training, pan18loader_validation = \
+    functions.load_tweets_dataset(args.lang, transformer, args.batch_size, args.val_batch_size)
 
 # Loss function
 loss_function = nn.CrossEntropyLoss()
 
 # Model
-model = models.CNNCTweet(text_length=min_length, vocab_size=voc_size, embedding_dim=args.dim)
+model = models.CNNCTweet(text_length=settings.min_length, vocab_size=settings.voc_sizes[args.n_gram][args.lang],
+                         embedding_dim=args.dim)
 if args.cuda:
     model.cuda()
 # end if
-
 best_model = copy.deepcopy(model.state_dict())
 best_acc = 0.0
 
@@ -98,7 +76,7 @@ for epoch in range(args.epoch):
             data_batch_size = inputs.size(0)
 
             # Merge batch and authors
-            inputs = inputs.view(-1, min_length)
+            inputs = inputs.view(-1, settings.min_length)
             labels = labels.view(data_batch_size * 100)
 
             # Variable and CUDA
@@ -113,8 +91,11 @@ for epoch in range(args.epoch):
             # Compute output
             try:
                 log_probs = model(inputs)
-            except RuntimeError:
+            except RuntimeError as e:
                 print(inputs.size())
+                print(labels.size())
+                print(torch.max(inputs))
+                print(e)
                 exit()
             # end try
 
@@ -129,11 +110,10 @@ for epoch in range(args.epoch):
             training_loss += loss.data[0]
             training_total += 1.0
             count += inputs.size(0)
-            if count >= int(args.training_tweet_count / 3):
+            if args.training_count != -1 and count >= int(args.training_count / 3):
                 break
             # end if
         # end for
-        print(training_total)
     # end for
 
     # Counters
@@ -147,8 +127,8 @@ for epoch in range(args.epoch):
         inputs, labels = data
 
         # Merge batch and authors
-        inputs = inputs.view(-1, min_length)
-        labels = labels.view(batch_size * 100)
+        inputs = inputs.view(-1, settings.min_length)
+        labels = labels.view(args.val_batch_size * 100)
 
         # Variable and CUDA
         inputs, labels = Variable(inputs), Variable(labels)
@@ -173,7 +153,7 @@ for epoch in range(args.epoch):
         test_loss += loss.data[0]
         test_total += 1.0
         count += inputs.size(0)
-        if count >= args.test_tweet_count:
+        if args.test_count != -1 and count >= args.test_count:
             break
         # end if
     # end for
@@ -195,6 +175,17 @@ for epoch in range(args.epoch):
 # Load best model
 model.load_state_dict(best_model)
 
-# Save
-torch.save(text_transform.transforms[2].token_to_ix, open(os.path.join(args.output, "voc.p"), 'wb'))
-torch.save(model, open(os.path.join(args.output, "model.p"), 'wb'))
+# Print vocabulary size
+print(u"Vocabulary size : {}".format(transformer[args.n_gram].transforms[3].token_count))
+
+# Save vocabulary
+torch.save(
+    transformer.transforms[3].token_to_ix,
+    open(os.path.join(args.output, "voc_" + args.lang + ".p"), 'wb')
+)
+
+# Save model
+torch.save(
+    model,
+    open(os.path.join(args.output, args.lang + ".p"), 'wb')
+)
