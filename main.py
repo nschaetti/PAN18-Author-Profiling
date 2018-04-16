@@ -4,204 +4,101 @@
 # Imports
 import torch
 from torchlanguage import transforms as ltransforms
-from torchlanguage import models
 import dataset
 import argparse
-import torch.nn as nn
-from torchvision import datasets, models, transforms
+from torchvision import transforms
 from torch.autograd import Variable
-from torch import optim
-import copy
 import os
+from tools import settings, functions
+import numpy as np
 
 
-# Settings
-batch_size = 16
-image_size = 224
-min_length = 165
+################################################
+# MAIN
+################################################
 
 # Argument parser
-parser = argparse.ArgumentParser(description="PAN18 Author Profiling join model")
+args = functions.argument_parser_execution()
 
-# Argument
-parser.add_argument("--output", type=str, help="Model output file", required=True)
-parser.add_argument("--image-model", type=str, help="Image model", required=True)
-parser.add_argument("--tweet-model", type=str, help="Image model", required=True)
-parser.add_argument("--no-cuda", action='store_true', default=False, help="Enables CUDA training")
-parser.add_argument("--epoch", type=int, help="Epoch", default=300)
-parser.add_argument("--lang", type=str, help="Language", default='en')
-parser.add_argument("--training-tweet-count", type=int, help="Number of tweets to train", default=2000)
-parser.add_argument("--test-tweet-count", type=int, help="Number of tweets to test", default=200)
-args = parser.parse_args()
-
-# Use CUDA?
-args.cuda = not args.no_cuda and torch.cuda.is_available()
-
-# Text tranformer
-text_transform = ltransforms.Compose([
-    ltransforms.RemoveRegex(regex=r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'),
-    ltransforms.ToLower(),
-    ltransforms.Character(),
-    ltransforms.ToIndex(start_ix=1)
-])
+# Load models and voc
+image_model, tweet_model, tweet_voc = functions.load_models(args.image_model, args.tweet_model_dir, 'en', args.cuda)
 
 # Image augmentation and normalization
-data_transforms = {
-    'train': transforms.Compose([
-        transforms.Resize(image_size),
-        # transforms.RandomResizedCrop(image_size),
-        transforms.RandomHorizontalFlip(),
-        transforms.CenterCrop(image_size),
-        transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-        # transforms.Normalize([0.5, 0.5, 0.5], [1.0, 1.0, 1.0])
-    ]),
-    'val': transforms.Compose([
-        # transforms.Resize(image_size),
-        transforms.CenterCrop(image_size),
-        transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-        # transforms.Normalize([0.5, 0.5, 0.5], [1.0, 1.0, 1.0])
-    ]),
-}
+image_transform = functions.image_transformer('val')
+
+# Transformer
+text_transform = functions.tweet_transformer(args.lang, args.n_gram)
 
 # Author profiling data set
-profiling_dataset_train_18 = dataset.AuthorProfilingDataset(min_length=min_length, root='./data/', download=True,
-                                                            lang=args.lang, text_transform=text_transform,
-                                                            image_transform=data_transforms, train=True)
-pan18loader_training = torch.utils.data.DataLoader(profiling_dataset_train_18, batch_size=batch_size, shuffle=True)
+profiling_dataset = dataset.AuthorProfilingDataset(root='./data/', download=True, lang=args.lang,
+                                                   text_transform=text_transform, image_transform=image_transform,
+                                                   train=True, val=0)
+pan18loader = torch.utils.data.DataLoader(profiling_dataset, batch_size=args.batch_size, shuffle=True)
 
-# Loss function
-loss_function = nn.CrossEntropyLoss()
+# Counters
+images_success = 0.0
+tweets_success = 0.0
+both_success = 0.0
+total = 0.0
 
-# Model
-model = models.CNNCTweet(text_length=min_length, vocab_size=voc_size, embedding_dim=args.dim)
-if args.cuda:
-    model.cuda()
-# end if
+# For validation set
+count = 0
+for data in pan18loader:
+    # Images, tweets and labels
+    tweets, images, labels = data
 
-best_model = copy.deepcopy(model.state_dict())
-best_acc = 0.0
-
-# Optimizer
-optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
-
-# Epoch
-for epoch in range(args.epoch):
-    # Total losses
-    training_loss = 0.0
-    training_total = 0.0
-    test_loss = 0.0
-    test_total = 0.
-
-    # For each training set
-    for training_set in pan18loader_training:
-        count = 0
-        for data in training_set:
-            # Inputs and labels
-            inputs, labels = data
-
-            # Batch size
-            data_batch_size = inputs.size(0)
-
-            # Merge batch and authors
-            inputs = inputs.view(-1, min_length)
-            labels = labels.view(data_batch_size * 100)
-
-            # Variable and CUDA
-            inputs, labels = Variable(inputs), Variable(labels)
-            if args.cuda:
-                inputs, labels = inputs.cuda(), labels.cuda()
-            # end if
-
-            # Zero grad
-            model.zero_grad()
-
-            # Compute output
-            try:
-                log_probs = model(inputs)
-            except RuntimeError:
-                print(inputs.size())
-                exit()
-            # end try
-
-            # Loss
-            loss = loss_function(log_probs, labels)
-
-            # Backward and step
-            loss.backward()
-            optimizer.step()
-
-            # Add
-            training_loss += loss.data[0]
-            training_total += 1.0
-            count += inputs.size(0)
-            if count >= int(args.training_tweet_count / 3):
-                break
-            # end if
-        # end for
-        print(training_total)
-    # end for
-
-    # Counters
-    total = 0.0
-    success = 0.0
-
-    # For validation set
-    count = 0
-    for data in pan18loader_validation:
-        # Inputs and labels
-        inputs, labels = data
-
-        # Merge batch and authors
-        inputs = inputs.view(-1, min_length)
-        labels = labels.view(batch_size * 100)
-
-        # Variable and CUDA
-        inputs, labels = Variable(inputs), Variable(labels)
-        if args.cuda:
-            inputs, labels = inputs.cuda(), labels.cuda()
-        # end if
-
-        # Forward
-        model_outputs = model(inputs)
-
-        # Compute loss
-        loss = loss_function(model_outputs, labels)
-
-        # Take the max as predicted
-        _, predicted = torch.max(model_outputs.data, 1)
-
-        # Add to correctly classified word
-        success += (predicted == labels.data).sum()
-        total += predicted.size(0)
-
-        # Add loss
-        test_loss += loss.data[0]
-        test_total += 1.0
-        count += inputs.size(0)
-        if count >= args.test_tweet_count:
-            break
-        # end if
-    # end for
-
-    # Accuracy
-    accuracy = success / total * 100.0
-
-    # Print and save loss
-    print(u"Epoch {}, training loss {}, test loss {}, accuracy {}".format(epoch, training_loss / training_total,
-                                                                          test_loss / test_total, accuracy))
-
-    # Save if better
-    if accuracy > best_acc:
-        best_acc = accuracy
-        best_model = copy.deepcopy(model.state_dict())
+    # Variable and CUDA
+    images, tweets, labels = Variable(images), Variable(tweets), Variable(labels)
+    if args.cuda:
+        images, tweets, labels = images.cuda(), tweets.cuda(), labels.cuda()
     # end if
+
+    # Remove images and tweet dimension
+    tweets = tweets.view(-1, settings.min_length)
+    images = images.view(-1, 3, settings.image_size, settings.image_size)
+
+    # Compute prob. for tweets and images
+    images_probs = image_model(images)
+    tweets_probs = tweet_model(tweets)
+
+    # Resize to images and tweet dimension and transpose
+    tweets_probs = tweets_probs.view(-1, 100, 2)
+    images_probs = images_probs.view(-1, 10, 2)
+
+    # Take the max as predicted
+    _, images_prediction = torch.max(torch.mean(images_probs, 1), 1)
+    _, tweets_prediction = torch.max(torch.mean(tweets_probs, 1), 1)
+
+    # Both prediction
+    _, both_prediction = torch.max((torch.mean(images_probs, 1) * settings.alpha + torch.mean(tweets_probs, 1) * (1.0 - settings.alpha)) / 2.0, 1)
+
+    # Add to correctly classified profiles
+    images_success += (images_prediction == labels).sum()
+    tweets_success += (tweets_prediction == labels).sum()
+    both_success += (both_prediction == labels).sum()
+
+    # Add to total
+    total += labels.size(0)
+    count += labels.size(0)
+
+    # Save result
+    for i in range(args.batch_size):
+        author_id = profiling_dataset.last_idxs[-args.batch_size+i]
+        functions.save_result(
+            args.output,
+            author_id,
+            args.lang,
+            tweets_prediction[i],
+            images_prediction[i],
+            both_prediction[i]
+        )
+    # end for
 # end for
 
-# Load best model
-model.load_state_dict(best_model)
+# Accuracies
+images_accuracy = images_success / total * 100.0
+tweets_accuracy = tweets_success / total * 100.0
+both_accuracy = both_success / total * 100.0
 
-# Save
-torch.save(text_transform.transforms[2].token_to_ix, open(os.path.join(args.output, "voc.p"), 'wb'))
-torch.save(model, open(os.path.join(args.output, "model.p"), 'wb'))
+# Print and save loss
+print(u"Images accuracy {}, Tweets accuracy {}, Both accuracy {}".format(images_accuracy, tweets_accuracy, both_accuracy))
