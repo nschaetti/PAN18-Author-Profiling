@@ -14,7 +14,7 @@ class CNNT(nn.Module):
     """
 
     # Constructor
-    def __init__(self, vocab_size, embedding_dim=300, out_channels=(100, 100, 100),
+    def __init__(self, vocab_size, embedding_dim=300, out_channels=(500, 500, 500),
                  kernel_sizes=(3, 4, 5)):
         """
         Constructor

@@ -5,6 +5,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import echotorch.nn as etnn
 
 
 # Multi-Channel model
@@ -29,10 +30,12 @@ class MC_Model(nn.Module):
         self.n_images = n_images
 
         # Number of features of the final fully connected layer of the text pre-trained network
-        text_num_ftrs = text_layer.fc.in_features
+        text_num_ftrs = self.text_layer.fc.in_features
+        self.text_layer.fc = etnn.Identity()
 
         # Number of features of the final fully connected layer of the image
-        image_num_ftrs = image_layer.fc.in_features
+        image_num_ftrs = self.image_layer.fc.in_features
+        self.image_layer.fc = etnn.Identity()
 
         # Linear layer
         self.linear_size = text_num_ftrs * n_texts + image_num_ftrs * n_images
@@ -46,7 +49,7 @@ class MC_Model(nn.Module):
         :param x: Data
         :return:
         """
-        pass
+
     # end forward
 
 # end CNNMC
