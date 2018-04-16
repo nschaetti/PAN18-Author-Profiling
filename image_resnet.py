@@ -51,15 +51,13 @@ args.cuda = not args.no_cuda and torch.cuda.is_available()
 data_transforms = {
     'train': transforms.Compose([
         transforms.Resize(image_size),
-        # transforms.RandomResizedCrop(image_size),
         transforms.RandomHorizontalFlip(),
         transforms.CenterCrop(image_size),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-        # transforms.Normalize([0.5, 0.5, 0.5], [1.0, 1.0, 1.0])
     ]),
     'val': transforms.Compose([
-        # transforms.Resize(image_size),
+        transforms.Resize(image_size),
         transforms.CenterCrop(image_size),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
