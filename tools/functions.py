@@ -68,6 +68,7 @@ def argument_parser_execution():
     parser.add_argument("--n-gram", type=str, help="N-Gram (c1, c2)", default='c1')
     parser.add_argument("--no-cuda", action='store_true', default=False, help="Enables CUDA training")
     parser.add_argument("--batch-size", type=int, help="Batch size", default=1)
+    parser.add_argument("--sub-dir", action='store_true', help="Use year directory", default=False)
     args = parser.parse_args()
     args.cuda = not args.no_cuda and torch.cuda.is_available()
     return args

@@ -44,7 +44,8 @@ for lang in ['en']:
 
     # Author profiling data set
     profiling_dataset = dataset.AuthorProfilingDataset(root=dataset_dir, download=True, text_transform=text_transform,
-                                                       image_transform=image_transform, train=True, val=0)
+                                                       image_transform=image_transform, train=True, val=0,
+                                                       add_subdir=args.sub_dir)
     pan18loader = torch.utils.data.DataLoader(profiling_dataset, batch_size=args.batch_size, shuffle=True)
 
     # For the data set
