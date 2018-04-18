@@ -88,7 +88,7 @@ for lang in ['en']:
             functions.save_result(
                 args.output_dir,
                 author_id,
-                args.lang,
+                lang,
                 tweets_prediction[i],
                 images_prediction[i],
                 both_prediction[i]
