@@ -22,9 +22,6 @@ image_model, tweet_model, tweet_voc = functions.load_models(args.image_model, ar
 # Image augmentation and normalization
 image_transform = functions.image_transformer('val')
 
-# Transformer
-text_transform = functions.tweet_transformer(args.lang, args.n_gram)
-
 # Counters
 total_images_success = 0.0
 total_tweets_success = 0.0
@@ -41,6 +38,9 @@ for lang in ['en']:
 
     # Dataset directory
     dataset_dir = os.path.join(args.input_dataset, lang)
+
+    # Transformer
+    text_transform = functions.tweet_transformer(lang, args.n_gram)
 
     # Author profiling data set
     profiling_dataset = dataset.AuthorProfilingDataset(root=dataset_dir, download=True, text_transform=text_transform,
