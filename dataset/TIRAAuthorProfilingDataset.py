@@ -52,6 +52,7 @@ class TIRAAuthorProfilingDataset(Dataset):
         """
         # Properties
         self.root = os.path.join(root, lang)
+        print(self.root)
         self.lang = lang
         self.text_transform = text_transform
         self.image_transform = image_transform
