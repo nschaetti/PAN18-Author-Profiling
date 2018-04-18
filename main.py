@@ -3,14 +3,9 @@
 
 # Imports
 import torch
-from torchlanguage import transforms as ltransforms
 import dataset
-import argparse
-from torchvision import transforms
 from torch.autograd import Variable
-import os
 from tools import settings, functions
-import numpy as np
 
 
 ################################################
