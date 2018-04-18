@@ -73,9 +73,9 @@ for data in pan18loader:
     _, both_prediction = torch.max((torch.mean(images_probs, 1) * settings.alpha + torch.mean(tweets_probs, 1) * (1.0 - settings.alpha)) / 2.0, 1)
 
     # Add to correctly classified profiles
-    images_success += (images_prediction == labels).sum()
-    tweets_success += (tweets_prediction == labels).sum()
-    both_success += (both_prediction == labels).sum()
+    images_success += int((images_prediction == labels).sum())
+    tweets_success += int((tweets_prediction == labels).sum())
+    both_success += int((both_prediction == labels).sum())
 
     # Add to total
     total += labels.size(0)
