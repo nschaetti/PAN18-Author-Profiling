@@ -52,11 +52,11 @@ class TIRAAuthorProfilingDataset(Dataset):
         """
         # Properties
         self.root = os.path.join(root, lang)
-        print(self.root)
         self.lang = lang
         self.text_transform = text_transform
         self.image_transform = image_transform
         self.classes = {'female': 0, 'male': 1}
+        self.last_idxs = list()
 
         # Load labels
         self.labels, self.idxs = self._load_labels()
@@ -88,6 +88,7 @@ class TIRAAuthorProfilingDataset(Dataset):
         """
         # Current IDXs
         current_idxs = self.idxs[item]
+        self.last_idxs.append(current_idxs)
 
         # Directories
         photo_directory = os.path.join(self.root, "photo")
