@@ -36,6 +36,12 @@ for lang in ['en']:
     both_success = 0.0
     count = 0
 
+    # Make to output directory
+    output_dir = os.path.join(args.output_dir, lang)
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+    # end
+
     # Transformer
     text_transform = functions.tweet_transformer(lang, args.n_gram)
 
@@ -86,7 +92,7 @@ for lang in ['en']:
         for i in range(args.batch_size):
             author_id = profiling_dataset.last_idxs[-args.batch_size+i]
             functions.save_result(
-                args.output_dir,
+                output_dir,
                 author_id,
                 lang,
                 tweets_prediction[i],
