@@ -44,7 +44,7 @@ class AuthorProfilingDataset(Dataset):
     """
 
     # Constructor
-    def __init__(self, root='./data', download=True, lang='en', text_transform=None, image_transform=None, train=True, val=0.1):
+    def __init__(self, root='./data', download=True, lang='en', text_transform=None, image_transform=None, train=True, val=0.1, add_subdir=True):
         """
         Constructor
         :param root: Data root directory
@@ -53,8 +53,12 @@ class AuthorProfilingDataset(Dataset):
         :param text_transform: Text transformation (from TorchLanguage)
         :param image_transform: Image transformation (from TorchVision)
         """
+        # Sub dir
+        if add_subdir:
+            self.root = os.path.join(root, "2018")
+        # end if
+
         # Properties
-        self.root = os.path.join(root, "2018")
         self.lang = lang
         self.text_transform = text_transform
         self.image_transform = image_transform
