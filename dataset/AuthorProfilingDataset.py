@@ -56,6 +56,8 @@ class AuthorProfilingDataset(Dataset):
         # Sub dir
         if add_subdir:
             self.root = os.path.join(root, "2018")
+        else:
+            self.root = root
         # end if
 
         # Properties
