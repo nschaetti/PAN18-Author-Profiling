@@ -67,7 +67,6 @@ def argument_parser_execution():
     parser.add_argument("--tweet-model-dir", type=str, help="Tweet model directory", required=True)
     parser.add_argument("--n-gram", type=str, help="N-Gram (c1, c2)", default='c1')
     parser.add_argument("--no-cuda", action='store_true', default=False, help="Enables CUDA training")
-    parser.add_argument("--lang", type=str, help="Language", default='en')
     parser.add_argument("--batch-size", type=int, help="Batch size", default=1)
     args = parser.parse_args()
     args.cuda = not args.no_cuda and torch.cuda.is_available()
