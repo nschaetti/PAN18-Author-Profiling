@@ -36,15 +36,12 @@ for lang in ['en']:
     both_success = 0.0
     count = 0
 
-    # Dataset directory
-    dataset_dir = os.path.join(args.input_dataset, lang)
-
     # Transformer
     text_transform = functions.tweet_transformer(lang, args.n_gram)
 
     # Author profiling data set
-    profiling_dataset = dataset.TIRAAuthorProfilingDataset(root=dataset_dir, text_transform=text_transform, lang=lang,
-                                                           image_transform=image_transform)
+    profiling_dataset = dataset.TIRAAuthorProfilingDataset(root=args.input_dataset, text_transform=text_transform,
+                                                           lang=lang, image_transform=image_transform)
     pan18loader = torch.utils.data.DataLoader(profiling_dataset, batch_size=args.batch_size, shuffle=True)
 
     # For the data set
