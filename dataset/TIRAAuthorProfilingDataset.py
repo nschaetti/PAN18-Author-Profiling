@@ -88,8 +88,12 @@ class TIRAAuthorProfilingDataset(Dataset):
         # Current IDXs
         current_idxs = self.idxs[item]
 
+        # Directories
+        photo_directory = os.path.join(self.root, "photo")
+        text_directory = os.path.join(self.root, "text")
+
         # Path to file
-        path_to_file = os.path.join(self.root, current_idxs + ".xml")
+        path_to_file = os.path.join(text_directory, current_idxs + ".xml")
 
         # Load  XML
         tree = etree.parse(path_to_file)
@@ -120,8 +124,8 @@ class TIRAAuthorProfilingDataset(Dataset):
         start = True
         for i in range(10):
             # Image path
-            image_path_jpeg = os.path.join(self.root, current_idxs + "." + str(i) + ".jpeg")
-            image_path_png = os.path.join(self.root, current_idxs + "." + str(i) + ".png")
+            image_path_jpeg = os.path.join(photo_directory, current_idxs, current_idxs + "." + str(i) + ".jpeg")
+            image_path_png = os.path.join(photo_directory, current_idxs, current_idxs + "." + str(i) + ".png")
 
             # Check existence
             if os.path.exists(image_path_jpeg):
