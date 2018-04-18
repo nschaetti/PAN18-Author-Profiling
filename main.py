@@ -43,7 +43,7 @@ for lang in ['en']:
     text_transform = functions.tweet_transformer(lang, args.n_gram)
 
     # Author profiling data set
-    profiling_dataset = dataset.AuthorProfilingDataset(root=dataset_dir, download=True, text_transform=text_transform,
+    profiling_dataset = dataset.AuthorProfilingDataset(root=dataset_dir, download=False, text_transform=text_transform,
                                                        image_transform=image_transform, train=True, val=0,
                                                        add_subdir=args.sub_dir)
     pan18loader = torch.utils.data.DataLoader(profiling_dataset, batch_size=args.batch_size, shuffle=True)
