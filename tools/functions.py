@@ -60,7 +60,9 @@ def argument_parser_execution():
     parser = argparse.ArgumentParser(description="PAN18 Author Profiling main program")
 
     # Argument
-    parser.add_argument("--output", type=str, help="Where to put results", required=True)
+    parser.add_argument("--input-dataset", type=str, help="Input dataset", required=True)
+    parser.add_argument("--output-dir", type=str, help="Where to put results", required=True)
+    parser.add_argument("--input-run", type=str, help="Input run", required=True)
     parser.add_argument("--image-model", type=str, help="Image model", required=True)
     parser.add_argument("--tweet-model-dir", type=str, help="Tweet model directory", required=True)
     parser.add_argument("--n-gram", type=str, help="N-Gram (c1, c2)", default='c1')

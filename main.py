@@ -14,7 +14,8 @@ from tools import settings, functions
 
 # Argument parser
 args = functions.argument_parser_execution()
-
+print(args)
+exit()
 # Load models and voc
 image_model, tweet_model, tweet_voc = functions.load_models(args.image_model, args.tweet_model_dir, 'en', args.cuda)
 
@@ -25,7 +26,7 @@ image_transform = functions.image_transformer('val')
 text_transform = functions.tweet_transformer(args.lang, args.n_gram)
 
 # Author profiling data set
-profiling_dataset = dataset.AuthorProfilingDataset(root='./data/', download=True, lang=args.lang,
+profiling_dataset = dataset.AuthorProfilingDataset(root=args.input_dataset, download=True, lang=args.lang,
                                                    text_transform=text_transform, image_transform=image_transform,
                                                    train=True, val=0)
 pan18loader = torch.utils.data.DataLoader(profiling_dataset, batch_size=args.batch_size, shuffle=True)
@@ -80,7 +81,7 @@ for data in pan18loader:
     for i in range(args.batch_size):
         author_id = profiling_dataset.last_idxs[-args.batch_size+i]
         functions.save_result(
-            args.output,
+            args.output_dir,
             author_id,
             args.lang,
             tweets_prediction[i],
