@@ -28,7 +28,7 @@ def argument_parser_training_model(model_type='tweet'):
     # Argument
     parser.add_argument("--output", type=str, help="Model output file", default='.')
     if model_type == 'tweet':
-        parser.add_argument("--dim", type=int, help="Embedding dimension", default=30)
+        parser.add_argument("--dim", type=int, help="Embedding dimension", default=300)
     # end if
     if model_type == 'tweet':
         parser.add_argument("--n-gram", type=str, help="N-Gram (c1, c2)", default='c1')
