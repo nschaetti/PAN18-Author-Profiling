@@ -160,21 +160,14 @@ for epoch in range(args.epoch):
     # Save if better
     if accuracy > best_acc:
         best_acc = accuracy
-        best_model = copy.deepcopy(model.state_dict())
+        print(u"Saving model with best accuracy {}".format(best_acc))
+        torch.save(
+            transformer.transforms[3].token_to_ix,
+            open(os.path.join(args.output, "voc_" + args.lang + ".p"), 'wb')
+        )
+        torch.save(
+            model.state_dict(),
+            open(os.path.join(args.output, args.lang + ".p"), 'wb')
+        )
     # end if
 # end for
-
-# Load best model
-model.load_state_dict(best_model)
-
-# Save vocabulary
-torch.save(
-    transformer.transforms[3].token_to_ix,
-    open(os.path.join(args.output, "voc_" + args.lang + ".p"), 'wb')
-)
-
-# Save model
-torch.save(
-    model,
-    open(os.path.join(args.output, args.lang + ".p"), 'wb')
-)
