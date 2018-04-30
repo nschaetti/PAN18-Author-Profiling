@@ -155,9 +155,6 @@ class TweetDataset(Dataset):
             # Transformed
             transformed = self.text_transform(unicode(document.text))
 
-            # Add one empty dim
-            transformed = transformed.unsqueeze(0)
-
             # Add
             if start:
                 tweets = transformed
