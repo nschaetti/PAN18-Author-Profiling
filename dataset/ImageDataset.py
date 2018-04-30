@@ -102,11 +102,27 @@ class ImageDataset(Dataset):
         :param item:
         :return:
         """
+        # Total len
+        total_length = len(self.images)
+
+        # Validation len
+        validation_length = int(total_length * self.val)
+
+        # Train length
+        train_length = total_length - validation_length
+
+        # Current set
+        if self.train:
+            current_set = self.images[:train_length]
+        else:
+            current_set = self.images[train_length:]
+        # end if
+
         # Current image path
-        current_image_path = os.path.join(self.root, self.images[item])
+        current_image_path = os.path.join(self.root, current_set[item])
 
         # Corresponding ID
-        idx = self.images[item][:self.images[item].find('.')]
+        idx = current_set[item][:current_set[item].find('.')]
 
         # PIL image
         try:
@@ -203,13 +219,10 @@ class ImageDataset(Dataset):
         """
         # For each file
         for file_name in os.listdir(self.root):
-            if u".jpeg" in file_name or u".png" in file_name:
+            if u".jpeg" in file_name or u".png" in file_name or u".jpg" in file_name or u".gif" in file_name:
                 # Add
                 self.images.append(file_name)
             elif u".xml" in file_name:
-                # Path to the file
-                path_to_file = os.path.join(self.root, file_name)
-
                 # IDXS
                 idxs = file_name[:-4]
 
