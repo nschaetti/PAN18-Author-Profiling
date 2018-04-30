@@ -94,7 +94,7 @@ for epoch in range(args.epoch):
         # Variable and CUDA
         images, labels = Variable(images), Variable(labels)
         if args.cuda:
-            inputs, labels = images.cuda(), labels.cuda()
+            images, labels = images.cuda(), labels.cuda()
         # end if
 
         # Zero grad
@@ -114,7 +114,7 @@ for epoch in range(args.epoch):
         training_loss += loss.data[0]
         training_total += 1.0
         image_count += images.size(0)
-        if image_count >= args.training_image_count:
+        if args.training_count != -1 and image_count >= args.training_image_count:
             break
         # end if
     # end for
@@ -152,7 +152,7 @@ for epoch in range(args.epoch):
         test_loss += loss.data[0]
         test_total += 1.0
         image_count += images.size(0)
-        if image_count >= args.test_image_count:
+        if args.training_count != -1 and image_count >= args.test_image_count:
             break
         # end if
     # end for
@@ -167,12 +167,7 @@ for epoch in range(args.epoch):
     # Save if better
     if accuracy > best_acc:
         best_acc = accuracy
-        best_model = copy.deepcopy(model.state_dict())
+        print(u"Saving model with best accuracy {}".format(best_acc))
+        torch.save(model.state_dict(), open(args.output, 'wb'))
     # end if
 # end for
-
-# Load best model
-model.load_state_dict(best_model)
-
-# Save
-torch.save(model, open(args.output, 'wb'))
