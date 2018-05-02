@@ -38,6 +38,9 @@ def argument_parser_training_model(model_type='tweet'):
     if model_type == 'tweet':
         parser.add_argument("--lang", type=str, help="Language", default='en')
     # end if
+    if model_type != 'tweet':
+        parser.add_argument("--model", type=str, help="resnet18, alexnet", default='resnet18')
+    # end if
     parser.add_argument("--batch-size", type=int, help="Batch size", default=20)
     parser.add_argument("--val-batch-size", type=int, help="Val. batch size", default=5)
     parser.add_argument("--training-count", type=int, help="Number of samples to train", default=-1)
