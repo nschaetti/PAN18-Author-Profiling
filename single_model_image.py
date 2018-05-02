@@ -47,6 +47,7 @@ def imshow(inp):
     plt.show()
 # end imsho
 
+
 # Argument parser
 args = functions.argument_parser_training_model('image')
 
@@ -65,9 +66,22 @@ pan18loader_training, pan18loader_validation = functions.load_images_dataset(
 loss_function = nn.CrossEntropyLoss()
 
 # Model
-model = models.resnet18(pretrained=True)
-num_ftrs = model.fc.in_features
-model.fc = nn.Linear(num_ftrs, 2)
+if args.model == 'resnet18':
+    model = models.resnet18(pretrained=True)
+    num_ftrs = model.fc.in_features
+    model.fc = nn.Linear(num_ftrs, 2)
+else:
+    model = models.alexnet(pretrained=True)
+    model.classifier = nn.Sequential(
+        nn.Dropout(),
+        nn.Linear(256 * 6 * 6, 4096),
+        nn.ReLU(inplace=True),
+        nn.Dropout(),
+        nn.Linear(4096, 4096),
+        nn.ReLU(inplace=True),
+        nn.Linear(4096, 2),
+    )
+# end if
 if args.cuda:
     model.cuda()
 # end if
