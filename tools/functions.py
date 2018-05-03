@@ -3,7 +3,11 @@
 
 # Imports
 from torchlanguage import transforms as ltransforms
+from torchlanguage import models
 from torchvision import transforms
+from torchvision import models as vmodels
+import torch.utils.model_zoo as model_zoo
+import torch.nn as nn
 import argparse
 import dataset
 import torch
@@ -67,11 +71,8 @@ def argument_parser_execution():
     parser.add_argument("--output-dir", type=str, help="Where to put results", required=True)
     parser.add_argument("--input-run", type=str, help="Input run", required=True)
     parser.add_argument("--image-model", type=str, help="Image model", required=True)
-    parser.add_argument("--tweet-model-dir", type=str, help="Tweet model directory", required=True)
     parser.add_argument("--n-gram", type=str, help="N-Gram (c1, c2)", default='c1')
     parser.add_argument("--no-cuda", action='store_true', default=False, help="Enables CUDA training")
-    parser.add_argument("--batch-size", type=int, help="Batch size", default=1)
-    parser.add_argument("--sub-dir", action='store_true', help="Use year directory", default=False)
     args = parser.parse_args()
     args.cuda = not args.no_cuda and torch.cuda.is_available()
     return args
@@ -83,20 +84,25 @@ def argument_parser_execution():
 
 
 # Get tweet transformer
-def tweet_transformer(lang, n_gram):
+def tweet_transformer(lang, n_gram, voc=None):
     """
     Get tweet transformer
     :param lang:
     :param n_gram:
     :return:
     """
+    if voc is None:
+        token_to_ix = dict()
+    else:
+        token_to_ix = voc
+    # end if
     if n_gram == 'c1':
         return transforms.Compose([
             ltransforms.RemoveRegex(
                 regex=r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'),
             ltransforms.ToLower(),
             ltransforms.Character(),
-            ltransforms.ToIndex(start_ix=1),
+            ltransforms.ToIndex(start_ix=1, token_to_ix=token_to_ix),
             ltransforms.ToLength(length=settings.min_length),
             ltransforms.MaxIndex(max_id=settings.voc_sizes[n_gram][lang] - 1)
         ])
@@ -106,7 +112,7 @@ def tweet_transformer(lang, n_gram):
                 regex=r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'),
             ltransforms.ToLower(),
             ltransforms.Character2Gram(),
-            ltransforms.ToIndex(start_ix=1),
+            ltransforms.ToIndex(start_ix=1, token_to_ix=token_to_ix),
             ltransforms.ToLength(length=settings.min_length),
             ltransforms.MaxIndex(max_id=settings.voc_sizes[n_gram][lang] - 1)
         ])
@@ -206,17 +212,45 @@ def load_images_dataset(image_transforms, batch_size, val_batch_size):
 ################
 
 
+# Create image model
+def create_image_model(model_type):
+    """
+    Create image model
+    :param model_type:
+    :return:
+    """
+    # Model
+    if model_type == 'resnet18':
+        model = vmodels.resnet18(pretrained=True)
+        num_ftrs = model.fc.in_features
+        model.fc = nn.Linear(num_ftrs, 2)
+    elif model_type == 'alexnet':
+        model = vmodels.alexnet(pretrained=True)
+        model.classifier = nn.Sequential(
+            nn.Dropout(),
+            nn.Linear(256 * 6 * 6, 4096),
+            nn.ReLU(inplace=True),
+            nn.Dropout(),
+            nn.Linear(4096, 4096),
+            nn.ReLU(inplace=True),
+            nn.Linear(4096, 2),
+        )
+    # end if
+    return model
+# end create_image_model
+
+
 # Load models
-def load_models(image_model_file, tweet_model_dir, lang, cuda=False):
+def load_models(model_type, n_gram, lang, cuda=False):
     """
     Load models
-    :param image_model_file:
-    :param tweet_model_dir:
+    :param image_model:
     :param cuda:
     :return:
     """
     # Load image model
-    image_model = torch.load(open(image_model_file, 'rb'))
+    image_model = create_image_model(model_type)
+    image_model.load_state_dict(model_zoo.load_url(settings.image_models[model_type]))
     if cuda:
         image_model.cuda()
     else:
@@ -224,15 +258,12 @@ def load_models(image_model_file, tweet_model_dir, lang, cuda=False):
     # end if
 
     # Load tweet model
-    tweet_model = torch.load(open(os.path.join(tweet_model_dir, lang + ".p"), 'rb'))
+    tweet_model, tweet_voc = models.cnnctweet(pretrained=True, n_gram=n_gram, lang=lang)
     if cuda:
         tweet_model.cuda()
     else:
         tweet_model.cpu()
     # end if
-
-    # Load tweet model vocabulary
-    tweet_voc = torch.load(open(os.path.join(tweet_model_dir, "voc_" + lang + ".p"), 'rb'))
 
     return image_model, tweet_model, tweet_voc
 # end load_models
