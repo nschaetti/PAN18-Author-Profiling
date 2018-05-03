@@ -248,9 +248,16 @@ def load_models(model_type, n_gram, lang, cuda=False):
     :param cuda:
     :return:
     """
+    # Map location
+    if not cuda:
+        map_location = 'cpu'
+    else:
+        map_location = None
+    # end if
+
     # Load image model
     image_model = create_image_model(model_type)
-    image_model.load_state_dict(model_zoo.load_url(settings.image_models[model_type]))
+    image_model.load_state_dict(model_zoo.load_url(settings.image_models[model_type], map_location=map_location))
     if cuda:
         image_model.cuda()
     else:
