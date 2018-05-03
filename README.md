@@ -63,6 +63,12 @@ This software output for each document of the dataset a corresponding XML file t
   />
 ```
 
+The software provide with three different predictions for the author's gender:
+
+* gender_txt: gender prediction by using only text
+* gender_img: gender prediction by using only images
+* gender_comb: gender prediction by using both text and images
+
 Image model training
 ====================
 
