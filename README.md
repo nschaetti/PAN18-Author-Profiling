@@ -42,3 +42,22 @@ Tweet model training
 
 ## Example
 
+Other
+=====
+
+## Authors
+
+## Citing
+
+If you find my work useful for an academic publication, then please use the following BibTeX to cite it:
+
+```
+@misc{PAN18-Author-Profiling,
+  author = {Schaetti, Nils},
+  title = {UniNE at CLEF 2018: Character-based CNN and deep image classifier for gender profiling of Twitter users},
+  year = {2018},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/nschaetti/PAN18-Author-Profiling}},
+}
+```
