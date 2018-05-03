@@ -18,6 +18,8 @@ Installation
 PAN@CLEF18 Author profiling challenge
 =====================================
 
+Challenge introduction from https://pan.webis.de/clef18/pan18-web/author-profiling.html :
+
 ```
 Authorship analysis deals with the classification of texts into classes based on the stylistic choices of
 their authors. Beyond the author identification and author verification tasks where the style of individual
@@ -31,6 +33,34 @@ Similarly, from a marketing viewpoint, companies may be interested in knowing, o
 of blogs and online product reviews, the demographics of people that like or dislike their products. The
 focus is on author profiling in social media since we are mainly interested in everyday language and how
 it reflects basic social and personality processes.
+```
+
+## Task
+
+This year the focus will be on gender identification in Twitter, where text and images may be used as information
+sources. The languages addressed will be:
+
+* English
+* Spanish
+* Arabic
+
+## Training corpus
+
+To develop your software, we provide you with a training data set that consists of Twitter users labeled with
+gender. For each author, a total of 100 tweets and 10 images are provided. Authors are grouped by the language
+of their tweets: English, Arabic and Spanish.
+
+## Output
+
+This software output for each document of the dataset a corresponding XML file that looks like this:
+
+```
+  <author id="author-id"
+	  lang="en|es|ar"
+	  gender_txt="male|female"
+	  gender_img="male|female"
+	  gender_comb="male|female"
+  />
 ```
 
 Image model training
