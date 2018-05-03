@@ -42,7 +42,7 @@ class TIRAAuthorProfilingDataset(Dataset):
     """
 
     # Constructor
-    def __init__(self, root, lang, text_transform=None, image_transform=None):
+    def __init__(self, root, lang, text_transform=None, image_transform=None, filter_robot=False):
         """
         Constructor
         :param root: Data root directory
@@ -57,6 +57,7 @@ class TIRAAuthorProfilingDataset(Dataset):
         self.image_transform = image_transform
         self.classes = {'female': 0, 'male': 1}
         self.last_idxs = list()
+        self.filter_robot = filter_robot
 
         # Load labels
         self.labels, self.idxs = self._load_labels()
@@ -107,18 +108,20 @@ class TIRAAuthorProfilingDataset(Dataset):
         # Get each documents
         start = True
         for document in tree.xpath("/author/documents/document"):
-            # Transformed
-            transformed = self.text_transform(document.text)
+            if not self.filter_robot or u"// automatically checked by" not in document.text:
+                # Transformed
+                transformed = self.text_transform(document.text)
 
-            # Add one empty dim
-            transformed = transformed.unsqueeze(0)
+                # Add one empty dim
+                transformed = transformed.unsqueeze(0)
 
-            # Add
-            if start:
-                tweets = transformed
-                start = False
-            else:
-                tweets = torch.cat((tweets, transformed), dim=0)
+                # Add
+                if start:
+                    tweets = transformed
+                    start = False
+                else:
+                    tweets = torch.cat((tweets, transformed), dim=0)
+                # end if
             # end if
         # end for
 
