@@ -14,12 +14,12 @@
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# Foobar is distributed in the hope that it will be useful,
+# PAN18 author profiling is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License
-# along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+# along with PAN18 author profiling.  If not, see <http://www.gnu.org/licenses/>.
 #
 
 # Imports
@@ -44,7 +44,7 @@ class AuthorProfilingDataset(Dataset):
     """
 
     # Constructor
-    def __init__(self, root='./data', download=True, lang='en', text_transform=None, image_transform=None, train=True, val=0.1, add_subdir=True):
+    def __init__(self, root='./data', download=True, lang='en', text_transform=None, image_transform=None, train=True, val=0.1, add_subdir=True, filter_robot=False):
         """
         Constructor
         :param root: Data root directory
@@ -69,6 +69,7 @@ class AuthorProfilingDataset(Dataset):
         self.train = train
         self.last_idxs = list()
         self.val = val
+        self.filter_robot = filter_robot
 
         # List of author's IDs
         self.idxs = list()
@@ -164,18 +165,20 @@ class AuthorProfilingDataset(Dataset):
         # Get each documents
         start = True
         for document in tree.xpath("/author/documents/document"):
-            # Transformed
-            transformed = self.text_transform(document.text)
+            if not self.filter_robot or u"// automatically checked by" not in document.text:
+                # Transformed
+                transformed = self.text_transform(document.text)
 
-            # Add one empty dim
-            transformed = transformed.unsqueeze(0)
+                # Add one empty dim
+                transformed = transformed.unsqueeze(0)
 
-            # Add
-            if start:
-                tweets = transformed
-                start = False
-            else:
-                tweets = torch.cat((tweets, transformed), dim=0)
+                # Add
+                if start:
+                    tweets = transformed
+                    start = False
+                else:
+                    tweets = torch.cat((tweets, transformed), dim=0)
+                # end if
             # end if
         # end for
 
