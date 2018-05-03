@@ -265,7 +265,7 @@ def load_models(model_type, n_gram, lang, cuda=False):
     # end if
 
     # Load tweet model
-    tweet_model, tweet_voc = models.cnnctweet(pretrained=True, n_gram=n_gram, lang=lang)
+    tweet_model, tweet_voc = models.cnnctweet(pretrained=True, n_gram=n_gram, lang=lang, map_location=map_location)
     if cuda:
         tweet_model.cuda()
     else:
