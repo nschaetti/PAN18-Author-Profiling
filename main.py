@@ -80,12 +80,12 @@ for lang in ['en', 'es', 'ar']:
     # For the data set
     for data in pan18loader:
         # Images, tweets and labels
-        tweets, images, labels = data
+        tweets, images = data
 
         # Variable and CUDA
-        images, tweets, labels = Variable(images), Variable(tweets), Variable(labels)
+        images, tweets= Variable(images), Variable(tweets)
         if args.cuda:
-            images, tweets, labels = images.cuda(), tweets.cuda(), labels.cuda()
+            images, tweets = images.cuda(), tweets.cuda()
         # end if
 
         # Tweets batch size
@@ -107,14 +107,6 @@ for lang in ['en', 'es', 'ar']:
         _, images_prediction = torch.max(torch.mean(images_probs, 1), 1)
         _, tweets_prediction = torch.max(torch.mean(tweets_probs, 1), 1)
 
-        # Add to correctly classified profiles
-        images_success += int((images_prediction == labels).sum())
-        tweets_success += int((tweets_prediction == labels).sum())
-        both_success += int((tweets_prediction == labels).sum())
-
-        # Add to total
-        count += labels.size(0)
-
         # Save result
         author_id = profiling_dataset.last_idxs[-1]
         functions.save_result(
@@ -126,35 +118,4 @@ for lang in ['en', 'es', 'ar']:
             tweets_prediction[-1]
         )
     # end for
-
-    # Total success
-    total_images_success += images_success
-    total_tweets_success += tweets_success
-    total_both_success += both_success
-    total += count
-
-    # Accuracies
-    images_accuracy = images_success / count * 100.0
-    tweets_accuracy = tweets_success / count * 100.0
-    both_accuracy = both_success / count * 100.0
-
-    # Print language accuracy
-    print(u"Lang {}, Images accuracy {}, Tweets accuracy {}, Both accuracy {}".format(
-        lang,
-        images_accuracy,
-        tweets_accuracy,
-        both_accuracy)
-    )
 # end for
-
-# Accuracies
-total_images_accuracy = total_images_success / total * 100.0
-total_tweets_accuracy = total_tweets_success / total * 100.0
-total_both_accuracy = total_both_success / total * 100.0
-
-# Print total accuracy
-print(u"Images accuracy {}, Tweets accuracy {}, Both accuracy {}".format(
-    total_images_accuracy,
-    total_tweets_accuracy,
-    total_both_accuracy)
-)

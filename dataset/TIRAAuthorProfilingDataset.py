@@ -60,10 +60,7 @@ class TIRAAuthorProfilingDataset(Dataset):
         self.filter_robot = filter_robot
 
         # Load labels
-        self.labels, self.idxs = self._load_labels()
-
-        # Load idxs
-        # self._load()
+        self.idxs = self._load_idxs()
     # end __init__
 
     ##############################################
@@ -169,7 +166,7 @@ class TIRAAuthorProfilingDataset(Dataset):
             # end if
         # end for
 
-        return tweets, images, self.labels[current_idxs]
+        return tweets, images
     # end __getitem__
 
     ##############################################
@@ -185,31 +182,23 @@ class TIRAAuthorProfilingDataset(Dataset):
     # end _create_root
 
     # Load labels
-    def _load_labels(self):
+    def _load_idxs(self):
         """
-        Load labels
+        Load ids
         :return: Dictionary from id to labels
         """
-        # Read file
-        label_file = codecs.open(os.path.join(self.root, "truth.txt")).read()
-
-        # IDX to labels
-        idx_to_labels = {}
+        # IDX
         idxs = list()
 
-        # For each line
-        for line in label_file.split("\n"):
-            if len(line) > 0:
-                # ID and label
-                idx, label = line.split(":::")
-
-                # Save label and idx
-                idx_to_labels[idx] = self.classes[label]
+        # For each file
+        for idx_file in os.listdir(os.path.join(self.root, 'text')):
+            if ".xml" in idx_file:
+                idx = idx_file[:-4]
                 idxs.append(idx)
             # end if
         # end for
 
-        return idx_to_labels, idxs
+        return idxs
     # end _load_labels
 
 # end TIRAAuthorProfilingDataset
