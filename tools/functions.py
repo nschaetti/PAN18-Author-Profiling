@@ -72,9 +72,8 @@ def argument_parser_execution():
     parser.add_argument("--input-run", type=str, help="Input run", required=True)
     parser.add_argument("--image-model", type=str, help="Image model", required=True)
     parser.add_argument("--n-gram", type=str, help="N-Gram (c1, c2)", default='c1')
-    parser.add_argument("--no-cuda", action='store_true', default=False, help="Enables CUDA training")
     args = parser.parse_args()
-    args.cuda = not args.no_cuda and torch.cuda.is_available()
+    args.cuda = False
     return args
 # end argument_parser_execution
 
