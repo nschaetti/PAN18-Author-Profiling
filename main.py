@@ -56,12 +56,6 @@ for lang in ['en', 'es', 'ar']:
         cuda=args.cuda
     )
 
-    # Counters
-    images_success = 0.0
-    tweets_success = 0.0
-    both_success = 0.0
-    count = 0
-
     # Make to output directory
     output_dir = os.path.join(args.output_dir, lang)
     if not os.path.exists(output_dir):

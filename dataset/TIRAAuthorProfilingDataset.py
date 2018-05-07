@@ -26,7 +26,6 @@
 from torch.utils.data.dataset import Dataset
 import os
 from lxml import etree
-import codecs
 from PIL import Image, ImageFile
 import torch
 
