@@ -263,6 +263,7 @@ class TweetDataset(Dataset):
         Load the dataset
         :return:
         """
+        print(self.root)
         # For each file
         for file_name in os.listdir(self.root):
             if u".xml" in file_name:

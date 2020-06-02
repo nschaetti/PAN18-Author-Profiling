@@ -256,7 +256,7 @@ def load_models(model_type, n_gram, lang, cuda=False):
 
     # Load image model
     image_model = create_image_model(model_type)
-    image_model.load_state_dict(model_zoo.load_url(settings.image_models[model_type], map_location=map_location))
+    image_model.load_state_dict(model_zoo.load_url(settings.image_models[model_type], map_location=None))
     if cuda:
         image_model.cuda()
     else:
@@ -264,7 +264,7 @@ def load_models(model_type, n_gram, lang, cuda=False):
     # end if
 
     # Load tweet model
-    tweet_model, tweet_voc = models.cnnctweet(pretrained=True, n_gram=n_gram, lang=lang, map_location=map_location)
+    tweet_model, tweet_voc = models.cnnctweet(pretrained=True, n_gram=n_gram, lang=lang, map_location=None)
     if cuda:
         tweet_model.cuda()
     else:

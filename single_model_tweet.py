@@ -65,8 +65,12 @@ for epoch in range(args.epoch):
     test_loss = 0.0
     test_total = 0.0
 
+    # Training
+    model.train()
+
     # For each training set
-    for training_set in [pan17loader_training, pan17loader_validation, pan18loader_training]:
+    # for training_set in [pan17loader_training, pan17loader_validation, pan18loader_training]:
+    for training_set in [pan18loader_training]:
         count = 0
         for data in training_set:
             # Inputs and labels
@@ -111,6 +115,9 @@ for epoch in range(args.epoch):
     # Counters
     total = 0.0
     success = 0.0
+
+    # Eval
+    model.eval()
 
     # For validation set
     count = 0
